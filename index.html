@@ -145,7 +145,7 @@
             div.className = 'match-card';
             div.innerHTML = `
               <div><strong>${match.team}</strong> vs <strong>${match.opponent}</strong></div>
-              <div>🕒 ${formatTo12Hour(match.time)} | 🏟️ ${match.location}</div>
+              <div>🕒 ${match.time} | 🏟️ ${match.location}</div>
               <div>📂 Division: ${match.division}</div>
               <div>👷 Duty Team: ${match.dutyTeam}</div>
             `;
@@ -153,13 +153,6 @@
           });
         }
       }
-    }
-
-    function formatTo12Hour(timeStr) {
-      const [hour, minute] = timeStr.split(":").map(Number);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const h12 = hour % 12 || 12;
-      return `${h12}:${minute.toString().padStart(2, '0')} ${ampm}`;
     }
   </script>
 </body>
