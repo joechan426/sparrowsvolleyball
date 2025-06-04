@@ -33,8 +33,16 @@
       background: #f5f5f7;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .match-card strong {
-      font-weight: 600;
+    .match-card .vs-line {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0b5394;
+      margin-bottom: 0.4rem;
+    }
+    .match-card .details {
+      font-size: 0.95rem;
+      color: #3c3c43;
+      margin: 0.2rem 0;
     }
     .match-date {
       margin-top: 2rem;
@@ -42,6 +50,7 @@
       font-weight: 500;
       border-bottom: 1px solid #e5e5ea;
       padding-bottom: 0.4rem;
+      color: #333;
     }
     @media screen and (max-width: 600px) {
       body { padding: 1rem; }
@@ -144,10 +153,10 @@
             const div = document.createElement('div');
             div.className = 'match-card';
             div.innerHTML = `
-              <div><strong>${match.team}</strong> vs <strong>${match.opponent}</strong></div>
-              <div>🕒 ${match.time} | 🏟️ ${match.location}</div>
-              <div>📂 Division: ${match.division}</div>
-              <div>👷 Duty Team: ${match.dutyTeam}</div>
+              <div class="vs-line">${match.team} vs ${match.opponent}</div>
+              <div class="details">🕒 ${match.time} | 🏟️ <strong>${match.location}</strong></div>
+              <div class="details">📂 Division: <span style="color:#1d70b8">${match.division}</span></div>
+              <div class="details">👷 Duty Team: <span style="color:#d32f2f">${match.dutyTeam}</span></div>
             `;
             results.appendChild(div);
           });
