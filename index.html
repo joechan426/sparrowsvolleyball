@@ -79,27 +79,25 @@
   <div id="results"></div>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbzOYJi9AHc3P8zWl9UWUViDft3sMvTic6zsgBWO1M_MSY1_FhkYtcHUzreCQHlMbNk/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbyulltkwDEIW-teigAQKVkp9TU1UERwWuWM9RHDE3tcS0dCIURNdvNu7IEuBRYGTJc/exec';
     let scheduleData = {};
-
     let defaultDate = "";
 
-fetch(apiUrl)
-  .then(res => res.json())
-  .then(data => {
-    scheduleData = data;
-    defaultDate = data._defaultDate || ""; // 👈 讀出 defaultDate
-    populateFilters();
-    document.getElementById('dateSelect').value = defaultDate; // 👈 自動選中
-    renderMatches();
-  });
-
+    fetch(apiUrl)
+      .then(res => res.json())
+      .then(data => {
+        scheduleData = data;
+        defaultDate = data._defaultDate || "";
+        populateFilters();
+        document.getElementById('dateSelect').value = defaultDate;
+        renderMatches();
+      });
 
     function populateFilters() {
       const teams = new Set(), divisions = new Set(), courts = new Set();
       const dates = [], dateSet = new Set();
 
-      const orderedDates = Object.keys(scheduleData);
+      const orderedDates = Object.keys(scheduleData).filter(k => k !== '_defaultDate');
       orderedDates.forEach(date => {
         if (!dateSet.has(date)) {
           dates.push(date);
@@ -149,7 +147,7 @@ fetch(apiUrl)
       const results = document.getElementById('results');
       results.innerHTML = '';
 
-      const orderedDates = Object.keys(scheduleData);
+      const orderedDates = Object.keys(scheduleData).filter(k => k !== '_defaultDate');
 
       orderedDates.forEach(date => {
         if (selectedDate && selectedDate !== date) return;
