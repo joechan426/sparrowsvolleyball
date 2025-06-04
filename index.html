@@ -1,89 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Volleyball Match Schedule</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volleyball Schedule</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    h1 { color: #333; }
-    select, option { padding: 6px; font-size: 16px; }
-    .match { margin: 12px 0; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-    .date { margin-top: 30px; font-weight: bold; font-size: 18px; border-bottom: 1px solid #aaa; }
+    body { font-family: sans-serif; background: #fff; padding: 2rem; max-width: 900px; margin: auto; }
+    h1 { color: #333; margin-bottom: 1rem; }
+    select { margin: 0.5rem 0.5rem 1rem 0; padding: 0.5rem; font-size: 1rem; }
+    .match-card {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      background: #f9f9f9;
+    }
+    .match-card strong { color: #000; }
+    .match-date { margin-top: 2rem; font-size: 1.2rem; font-weight: bold; color: #444; }
+    @media screen and (max-width: 600px) {
+      body { padding: 1rem; }
+      select { width: 100%; }
+    }
   </style>
 </head>
 <body>
-  <h1>🏐 Volleyball Match Schedule</h1>
+  <h1>🏐 Volleyball Schedule</h1>
 
-  <label for="teamSelect">Select your team:</label>
+  <label>Filter by:</label>
   <select id="teamSelect">
-    <option value="">-- Please choose --</option>
+    <option value="">Select Team</option>
+  </select>
+  <select id="divisionSelect">
+    <option value="">Select Division</option>
+  </select>
+  <select id="courtSelect">
+    <option value="">Select Court</option>
   </select>
 
-  <div id="schedule"></div>
+  <div id="results"></div>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbzmXUdIe8RQVBLdGNDyncLo5a7MchnXGf-vBh-U2-oLfndBd3V5e20l9wVZRX-sPwU/exec'; // <-- Replace this
-
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbyulltkwDEIW-teigAQKVkp9TU1UERwWuWM9RHDE3tcS0dCIURNdvNu7IEuBRYGTJc/exec';
     let scheduleData = {};
 
-    // Load data from Google Script JSON
     fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
         scheduleData = data;
-        populateTeams(data);
+        populateFilters();
       });
 
-    function populateTeams(data) {
-      const teams = new Set();
-      for (const date in data) {
-        data[date].forEach(match => {
+    function populateFilters() {
+      const teams = new Set(), divisions = new Set(), courts = new Set();
+      for (const date in scheduleData) {
+        scheduleData[date].forEach(match => {
           teams.add(match.team);
           teams.add(match.opponent);
+          teams.add(match.dutyTeam);
+          divisions.add(match.division);
+          courts.add(match.location);
         });
       }
+      fillSelect('teamSelect', teams);
+      fillSelect('divisionSelect', divisions);
+      fillSelect('courtSelect', courts);
+    }
 
-      const select = document.getElementById('teamSelect');
-      [...teams].sort().forEach(team => {
-        const option = document.createElement('option');
-        option.value = team;
-        option.textContent = team;
-        select.appendChild(option);
+    function fillSelect(id, items) {
+      const select = document.getElementById(id);
+      [...items].sort().forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        select.appendChild(opt);
       });
     }
 
-    document.getElementById('teamSelect').addEventListener('change', function () {
-      const selectedTeam = this.value;
-      const scheduleDiv = document.getElementById('schedule');
-      scheduleDiv.innerHTML = '';
+    ['teamSelect', 'divisionSelect', 'courtSelect'].forEach(id => {
+      document.getElementById(id).addEventListener('change', renderMatches);
+    });
 
-      if (!selectedTeam) return;
+    function renderMatches() {
+      const selectedTeam = document.getElementById('teamSelect').value;
+      const selectedDivision = document.getElementById('divisionSelect').value;
+      const selectedCourt = document.getElementById('courtSelect').value;
+      const results = document.getElementById('results');
+      results.innerHTML = '';
 
       for (const date in scheduleData) {
-        const matches = scheduleData[date].filter(match =>
-          match.team === selectedTeam || match.opponent === selectedTeam
-        );
+        const filtered = scheduleData[date].filter(match => {
+          const matchHasTeam = match.team === selectedTeam || match.opponent === selectedTeam || match.dutyTeam === selectedTeam || !selectedTeam;
+          const matchHasDivision = match.division === selectedDivision || !selectedDivision;
+          const matchHasCourt = match.location === selectedCourt || !selectedCourt;
+          return matchHasTeam && matchHasDivision && matchHasCourt;
+        });
 
-        if (matches.length > 0) {
-          const dateHeader = document.createElement('div');
-          dateHeader.className = 'date';
-          dateHeader.textContent = date;
-          scheduleDiv.appendChild(dateHeader);
+        if (filtered.length > 0) {
+          const dateTitle = document.createElement('div');
+          dateTitle.className = 'match-date';
+          dateTitle.textContent = date;
+          results.appendChild(dateTitle);
 
-          matches.forEach(match => {
-            const matchDiv = document.createElement('div');
-            matchDiv.className = 'match';
-            matchDiv.innerHTML = `
-              <strong>${match.team}</strong> vs <strong>${match.opponent}</strong><br>
-              🕒 Time: ${match.time}<br>
-              📍 Court: ${match.location}<br>
-              👷 Duty: ${match.dutyTeam}
+          filtered.forEach(match => {
+            const div = document.createElement('div');
+            div.className = 'match-card';
+            div.innerHTML = `
+              <div><strong>${match.team}</strong> vs <strong>${match.opponent}</strong></div>
+              <div>🕒 ${match.time} | 🏟️ ${match.location}</div>
+              <div>📂 Division: ${match.division}</div>
+              <div>👷 Duty Team: ${match.dutyTeam}</div>
             `;
-            scheduleDiv.appendChild(matchDiv);
+            results.appendChild(div);
           });
         }
       }
-    });
+    }
   </script>
 </body>
 </html>
