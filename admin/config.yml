@@ -1,0 +1,21 @@
+backend:
+  name: github
+  repo: joechan426/sparrowsvolleyball
+  branch: main
+
+media_folder: "uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "matches"
+    label: "Volleyball Matches"
+    folder: "content/matches"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Team A", name: "teamA", widget: "string" }
+      - { label: "Team B", name: "teamB", widget: "string" }
+      - { label: "Time", name: "time", widget: "string" }
+      - { label: "Court", name: "court", widget: "string" }
+      - { label: "Duty Team", name: "duty", widget: "string" }
