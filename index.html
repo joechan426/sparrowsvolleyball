@@ -2,10 +2,88 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Volleyball Schedule</title>
+  <title>Volleyball Match Schedule</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    h1 { color: #333; }
+    select, option { padding: 6px; font-size: 16px; }
+    .match { margin: 12px 0; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    .date { margin-top: 30px; font-weight: bold; font-size: 18px; border-bottom: 1px solid #aaa; }
+  </style>
 </head>
 <body>
-  <h1>Hello, Volleyball World!</h1>
-  <p>This site will soon display our match schedule.</p>
+  <h1>🏐 Volleyball Match Schedule</h1>
+
+  <label for="teamSelect">Select your team:</label>
+  <select id="teamSelect">
+    <option value="">-- Please choose --</option>
+  </select>
+
+  <div id="schedule"></div>
+
+  <script>
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbzmXUdIe8RQVBLdGNDyncLo5a7MchnXGf-vBh-U2-oLfndBd3V5e20l9wVZRX-sPwU/exec'; // <-- Replace this
+
+    let scheduleData = {};
+
+    // Load data from Google Script JSON
+    fetch(apiUrl)
+      .then(res => res.json())
+      .then(data => {
+        scheduleData = data;
+        populateTeams(data);
+      });
+
+    function populateTeams(data) {
+      const teams = new Set();
+      for (const date in data) {
+        data[date].forEach(match => {
+          teams.add(match.team);
+          teams.add(match.opponent);
+        });
+      }
+
+      const select = document.getElementById('teamSelect');
+      [...teams].sort().forEach(team => {
+        const option = document.createElement('option');
+        option.value = team;
+        option.textContent = team;
+        select.appendChild(option);
+      });
+    }
+
+    document.getElementById('teamSelect').addEventListener('change', function () {
+      const selectedTeam = this.value;
+      const scheduleDiv = document.getElementById('schedule');
+      scheduleDiv.innerHTML = '';
+
+      if (!selectedTeam) return;
+
+      for (const date in scheduleData) {
+        const matches = scheduleData[date].filter(match =>
+          match.team === selectedTeam || match.opponent === selectedTeam
+        );
+
+        if (matches.length > 0) {
+          const dateHeader = document.createElement('div');
+          dateHeader.className = 'date';
+          dateHeader.textContent = date;
+          scheduleDiv.appendChild(dateHeader);
+
+          matches.forEach(match => {
+            const matchDiv = document.createElement('div');
+            matchDiv.className = 'match';
+            matchDiv.innerHTML = `
+              <strong>${match.team}</strong> vs <strong>${match.opponent}</strong><br>
+              🕒 Time: ${match.time}<br>
+              📍 Court: ${match.location}<br>
+              👷 Duty: ${match.dutyTeam}
+            `;
+            scheduleDiv.appendChild(matchDiv);
+          });
+        }
+      }
+    });
+  </script>
 </body>
 </html>
