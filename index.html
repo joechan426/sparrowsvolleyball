@@ -82,13 +82,18 @@
     const apiUrl = 'https://script.google.com/macros/s/AKfycbxqq9TJCBM-SkeYh7LyQAC6QeLfHdETavb-oKip0zXjAXzAAGwA6vOy9wJvMOguf94/exec';
     let scheduleData = {};
 
-    fetch(apiUrl)
-      .then(res => res.json())
-      .then(data => {
-        scheduleData = data;
-        populateFilters();
-        renderMatches();
-      });
+    let defaultDate = "";
+
+fetch(apiUrl)
+  .then(res => res.json())
+  .then(data => {
+    scheduleData = data;
+    defaultDate = data._defaultDate || ""; // 👈 讀出 defaultDate
+    populateFilters();
+    document.getElementById('dateSelect').value = defaultDate; // 👈 自動選中
+    renderMatches();
+  });
+
 
     function populateFilters() {
       const teams = new Set(), divisions = new Set(), courts = new Set();
