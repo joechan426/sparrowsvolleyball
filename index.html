@@ -18,7 +18,7 @@
       font-weight: 600;
       margin-bottom: 1rem;
     }
-    select {
+    select, button {
       margin: 0.5rem 1rem 1rem 0;
       padding: 0.5rem 1rem;
       font-size: 1rem;
@@ -54,7 +54,7 @@
     }
     @media screen and (max-width: 600px) {
       body { padding: 1rem; }
-      select { width: 100%; margin: 0.5rem 0; }
+      select, button { width: 100%; margin: 0.5rem 0; }
     }
   </style>
 </head>
@@ -71,11 +71,15 @@
   <select id="courtSelect">
     <option value="">Select Court</option>
   </select>
+  <select id="dateSelect">
+    <option value="">Select Date</option>
+  </select>
+  <button onclick="resetFilters()">Reset Filters</button>
 
   <div id="results"></div>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbwebCm8-fTCki7Yej9udAq6x04iCMRlKGHMB7k8YWNZQC5Y0JuEQTVqlM0JFmkwBw/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbyulltkwDEIW-teigAQKVkp9TU1UERwWuWM9RHDE3tcS0dCIURNdvNu7IEuBRYGTJc/exec';
     let scheduleData = {};
 
     fetch(apiUrl)
@@ -83,11 +87,13 @@
       .then(data => {
         scheduleData = data;
         populateFilters();
+        renderMatches();
       });
 
     function populateFilters() {
-      const teams = new Set(), divisions = new Set(), courts = new Set();
+      const teams = new Set(), divisions = new Set(), courts = new Set(), dates = new Set();
       for (const date in scheduleData) {
+        dates.add(date);
         scheduleData[date].forEach(match => {
           teams.add(match.team);
           teams.add(match.opponent);
@@ -98,6 +104,7 @@
       fillSelect('teamSelect', teams);
       fillSelect('divisionSelect', divisions);
       fillSelect('courtSelect', courts);
+      fillSelect('dateSelect', dates);
     }
 
     function fillSelect(id, items) {
@@ -110,37 +117,33 @@
       });
     }
 
-    ['teamSelect', 'divisionSelect', 'courtSelect'].forEach(id => {
-      document.getElementById(id).addEventListener('change', function() {
-        if (id === 'teamSelect') {
-          document.getElementById('divisionSelect').value = '';
-          document.getElementById('courtSelect').value = '';
-        } else if (id === 'divisionSelect') {
-          document.getElementById('teamSelect').value = '';
-          document.getElementById('courtSelect').value = '';
-        } else if (id === 'courtSelect') {
-          document.getElementById('teamSelect').value = '';
-          document.getElementById('divisionSelect').value = '';
-        }
-        renderMatches();
-      });
+    ['teamSelect', 'divisionSelect', 'courtSelect', 'dateSelect'].forEach(id => {
+      document.getElementById(id).addEventListener('change', renderMatches);
     });
+
+    function resetFilters() {
+      ['teamSelect', 'divisionSelect', 'courtSelect', 'dateSelect'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      renderMatches();
+    }
 
     function renderMatches() {
       const selectedTeam = document.getElementById('teamSelect').value;
       const selectedDivision = document.getElementById('divisionSelect').value;
       const selectedCourt = document.getElementById('courtSelect').value;
+      const selectedDate = document.getElementById('dateSelect').value;
       const results = document.getElementById('results');
       results.innerHTML = '';
 
       for (const date in scheduleData) {
+        if (selectedDate && selectedDate !== date) continue;
+
         const filtered = scheduleData[date].filter(match => {
-          const hasTeam = (match.team === selectedTeam || match.opponent === selectedTeam);
-          const hasDuty = (match.dutyTeam === selectedTeam);
-          const matchHasTeam = (selectedTeam && (hasTeam || hasDuty)) || !selectedTeam;
-          const matchHasDivision = match.division === selectedDivision || !selectedDivision;
-          const matchHasCourt = match.location === selectedCourt || !selectedCourt;
-          return matchHasTeam && matchHasDivision && matchHasCourt;
+          const hasTeam = (match.team === selectedTeam || match.opponent === selectedTeam || match.dutyTeam === selectedTeam || !selectedTeam);
+          const hasDivision = (match.division === selectedDivision || !selectedDivision);
+          const hasCourt = (match.location === selectedCourt || !selectedCourt);
+          return hasTeam && hasDivision && hasCourt;
         });
 
         if (filtered.length > 0) {
