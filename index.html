@@ -91,31 +91,33 @@
       });
 
     function populateFilters() {
-  const teams = new Set(), divisions = new Set(), courts = new Set();
-  const dates = [], dateSet = new Set(); // 保留原始順序
+      const teams = new Set(), divisions = new Set(), courts = new Set();
+      const dates = [], dateSet = new Set(); // 順序保留陣列
 
-  for (const date in scheduleData) {
-    if (!dateSet.has(date)) {
-      dates.push(date);
-      dateSet.add(date);
+      const orderedDates = Object.keys(scheduleData); // 使用 JSON 順序保留的特性
+      orderedDates.forEach(date => {
+        if (!dateSet.has(date)) {
+          dates.push(date);
+          dateSet.add(date);
+        }
+        scheduleData[date].forEach(match => {
+          teams.add(match.team);
+          teams.add(match.opponent);
+          divisions.add(match.division);
+          courts.add(match.location);
+        });
+      });
+
+      fillSelect('teamSelect', teams);
+      fillSelect('divisionSelect', divisions);
+      fillSelect('courtSelect', courts);
+      fillSelect('dateSelect', dates, false); // 不排序
     }
-    scheduleData[date].forEach(match => {
-      teams.add(match.team);
-      teams.add(match.opponent);
-      divisions.add(match.division);
-      courts.add(match.location);
-    });
-  }
 
-  fillSelect('teamSelect', teams);
-  fillSelect('divisionSelect', divisions);
-  fillSelect('courtSelect', courts);
-  fillSelect('dateSelect', dates); // ✅ 現在照 Sheet 順序
-}
-
-    function fillSelect(id, items) {
+    function fillSelect(id, items, sort = true) {
       const select = document.getElementById(id);
-      [...items].sort().forEach(item => {
+      const options = sort ? [...items].sort() : [...items];
+      options.forEach(item => {
         const opt = document.createElement('option');
         opt.value = item;
         opt.textContent = item;
