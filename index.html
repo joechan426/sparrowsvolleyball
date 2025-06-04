@@ -92,9 +92,9 @@
 
     function populateFilters() {
       const teams = new Set(), divisions = new Set(), courts = new Set();
-      const dates = [], dateSet = new Set(); // 順序保留陣列
+      const dates = [], dateSet = new Set();
 
-      const orderedDates = Object.keys(scheduleData); // 使用 JSON 順序保留的特性
+      const orderedDates = Object.keys(scheduleData);
       orderedDates.forEach(date => {
         if (!dateSet.has(date)) {
           dates.push(date);
@@ -111,7 +111,7 @@
       fillSelect('teamSelect', teams);
       fillSelect('divisionSelect', divisions);
       fillSelect('courtSelect', courts);
-      fillSelect('dateSelect', dates, false); // 不排序
+      fillSelect('dateSelect', dates, false);
     }
 
     function fillSelect(id, items, sort = true) {
@@ -144,8 +144,10 @@
       const results = document.getElementById('results');
       results.innerHTML = '';
 
-      for (const date in scheduleData) {
-        if (selectedDate && selectedDate !== date) continue;
+      const orderedDates = Object.keys(scheduleData);
+
+      orderedDates.forEach(date => {
+        if (selectedDate && selectedDate !== date) return;
 
         const filtered = scheduleData[date].filter(match => {
           const hasTeam = (match.team === selectedTeam || match.opponent === selectedTeam || match.dutyTeam === selectedTeam || !selectedTeam);
@@ -172,7 +174,7 @@
             results.appendChild(div);
           });
         }
-      }
+      });
     }
   </script>
 </body>
