@@ -91,23 +91,27 @@
       });
 
     function populateFilters() {
-      const teams = new Set(), divisions = new Set(), courts = new Set();
-      const dates = []; // 改用陣列保留順序
-      const dateSet = new Set(); // 用來避免重複
-      for (const date in scheduleData) {
-        dates.add(date);
-        scheduleData[date].forEach(match => {
-          teams.add(match.team);
-          teams.add(match.opponent);
-          divisions.add(match.division);
-          courts.add(match.location);
-        });
-      }
-      fillSelect('teamSelect', teams);
-      fillSelect('divisionSelect', divisions);
-      fillSelect('courtSelect', courts);
-      fillSelect('dateSelect', dates);
+  const teams = new Set(), divisions = new Set(), courts = new Set();
+  const dates = [], dateSet = new Set(); // 保留原始順序
+
+  for (const date in scheduleData) {
+    if (!dateSet.has(date)) {
+      dates.push(date);
+      dateSet.add(date);
     }
+    scheduleData[date].forEach(match => {
+      teams.add(match.team);
+      teams.add(match.opponent);
+      divisions.add(match.division);
+      courts.add(match.location);
+    });
+  }
+
+  fillSelect('teamSelect', teams);
+  fillSelect('divisionSelect', divisions);
+  fillSelect('courtSelect', courts);
+  fillSelect('dateSelect', dates); // ✅ 現在照 Sheet 順序
+}
 
     function fillSelect(id, items) {
       const select = document.getElementById(id);
