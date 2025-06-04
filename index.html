@@ -91,7 +91,9 @@
       });
 
     function populateFilters() {
-      const teams = new Set(), divisions = new Set(), courts = new Set(), dates = new Set();
+      const teams = new Set(), divisions = new Set(), courts = new Set();
+      const dates = []; // 改用陣列保留順序
+      const dateSet = new Set(); // 用來避免重複
       for (const date in scheduleData) {
         dates.add(date);
         scheduleData[date].forEach(match => {
