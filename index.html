@@ -71,9 +71,32 @@
     .enter-btn:hover {
       background: #0051c6;
     }
-    @media screen and (max-width: 600px) {
-      body { padding: 1rem; }
-      select, button { width: 100%; margin: 0.5rem 0; }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    .popup h3 {
+      margin-bottom: 1rem;
+    }
+    .popup input {
+      width: 60px;
+      padding: 0.4rem;
+      text-align: center;
+      margin: 0.2rem;
+    }
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 999;
     }
   </style>
 </head>
@@ -198,7 +221,7 @@
               const btn = document.createElement('button');
               btn.className = 'enter-btn';
               btn.textContent = 'Enter Result (Referee use only)';
-              btn.onclick = () => enterResult(date, i);
+              btn.onclick = () => verifyPasscodeAndInput(date, i, match.team, match.opponent);
               div.appendChild(btn);
             }
             results.appendChild(div);
@@ -207,25 +230,66 @@
       });
     }
 
-    function enterResult(date, index) {
-      const passcode = prompt("Enter passcode to proceed:");
-      if (!passcode) return;
+    function verifyPasscodeAndInput(date, index, team1, team2) {
+      const pass = prompt("Enter passcode:");
+      if (!pass) return;
 
+      fetch(apiUrl, {
+        method: 'POST',
+        body: JSON.stringify({ date, index, passcode: pass, validateOnly: true }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.text())
+      .then(resp => {
+        if (resp !== 'PASS_OK') {
+          alert("Passcode Error");
+        } else {
+          showScoreInputPopup(date, index, team1, team2);
+        }
+      });
+    }
+
+    function showScoreInputPopup(date, index, team1, team2) {
+      const overlay = document.createElement('div');
+      overlay.className = 'popup-overlay';
+      const popup = document.createElement('div');
+      popup.className = 'popup';
+      popup.innerHTML = `
+        <h3>Enter Set Scores</h3>
+        <table>
+          <tr><td></td><th>${team1}</th><th>${team2}</th></tr>
+          ${[1,2,3,4,5].map(i => `
+            <tr>
+              <td>${i} Set</td>
+              <td><input type="number" min="0" id="t1s${i}" /></td>
+              <td><input type="number" min="0" id="t2s${i}" /></td>
+            </tr>
+          `).join('')}
+        </table>
+        <br><button onclick="submitScores('${date}', ${index})">Submit</button>
+      `;
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+    }
+
+    function submitScores(date, index) {
       const scores = [];
       for (let i = 1; i <= 5; i++) {
-        let s1 = prompt(`Set ${i} - ${i}A 分數:`);
-        let s2 = prompt(`Set ${i} - ${i}B 分數:`);
-        scores.push([parseInt(s1), parseInt(s2)]);
+        let a = document.getElementById(`t1s${i}`).value;
+        let b = document.getElementById(`t2s${i}`).value;
+        scores.push([parseInt(a) || '', parseInt(b) || '']);
       }
 
       fetch(apiUrl, {
         method: 'POST',
-        body: JSON.stringify({ date, index, passcode, scores }),
+        body: JSON.stringify({ date, index, passcode: "SUBMIT", scores }),
         headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.text())
-      .then(msg => alert(msg))
-      .catch(err => alert("Error: " + err));
+      .then(msg => {
+        alert(msg);
+        location.reload();
+      });
     }
   </script>
 </body>
