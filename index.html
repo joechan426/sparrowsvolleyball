@@ -3,95 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sparrows Volleyball Schedule</title>
+  <title>Match Schedule</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      background: #fff;
-      color: #333;
-      margin: 0;
-      padding: 1rem;
-    }
-    h1 {
-      font-size: 2rem;
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-    p.description {
-      text-align: center;
-      font-size: 1rem;
-      color: #666;
-      margin-bottom: 1.5rem;
-    }
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    .filters select, .filters button {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    .card {
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 1rem;
-      margin: 1rem auto;
-      max-width: 600px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .card h2 {
-      margin-top: 0;
-      font-size: 1.2rem;
-      color: #111;
-    }
-    .highlight {
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-    .result-btn {
-      background-color: #007aff;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 0.5rem;
-    }
-    dialog {
-      border: none;
-      border-radius: 12px;
-      padding: 1rem;
-      max-width: 400px;
-    }
-    dialog input[type="number"] {
-      width: 60px;
-      padding: 0.3rem;
-      font-size: 1rem;
-      margin: 0.2rem;
-    }
-    .score-table {
-      display: flex;
-      justify-content: space-between;
-    }
-    .score-table > div {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .score-labels {
-      text-align: left;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background: #fff; color: #333; }
+    header { background: #f8f8f8; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; border-bottom: 1px solid #ddd; }
+    .description { text-align: center; font-size: 1em; margin: 10px 0 20px; color: #666; }
+    .filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 10px; }
+    select, button { font-size: 1em; padding: 5px 10px; border: 1px solid #ccc; border-radius: 5px; }
+    .match-card { border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin: 10px; max-width: 500px; background: #fafafa; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .match-card strong { font-size: 1.2em; display: block; margin-bottom: 5px; color: #000; }
+    .highlight { color: #007aff; font-weight: bold; }
+    .popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); z-index: 999; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>Sparrows Volleyball Schedule</h1>
-  <p class="description">Ver 1.016</p>
+  <header>Match Schedule</header>
+  <div class="description">Thank you so much for helping our league run smoothly</div>
   <div class="filters">
     <select id="teamFilter"><option value="">Select Team</option></select>
     <select id="divisionFilter"><option value="">Select Division</option></select>
@@ -99,167 +28,163 @@
     <select id="dateFilter"><option value="">Select Date</option></select>
     <button onclick="resetFilters()">Reset</button>
   </div>
-  <div id="schedule"></div>
-
-  <dialog id="scoreDialog">
-    <form method="dialog">
-      <h3 id="popupTitle"></h3>
-      <div class="score-table">
-        <div class="score-labels">
-          <p>1st Set</p><p>2nd Set</p><p>3rd Set</p><p>4th Set</p><p>5th Set</p>
-        </div>
-        <div>
-          <strong id="teamAName"></strong>
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA1">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA2">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA3">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA4">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA5">
-        </div>
-        <div>
-          <strong id="teamBName"></strong>
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB1">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB2">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB3">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB4">
-          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB5">
-        </div>
-      </div>
-      <button id="submitScore" type="submit">Submit</button>
-    </form>
-  </dialog>
-
+  <div id="results"></div>
+  <div id="popupContainer" class="hidden"></div>
   <script>
-    const apiUrl = "https://script.google.com/macros/s/AKfycbwUAh9tYZbnO9Fz-tqKxWhaupPNSZv0i2g5boib2tu8i0szhjD4UMiYqNjOYlNUNCk/exec";
-    let allData = {};
-    let currentMatch = {};
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzcph6-6MiJU7v_XKcM6BHi80WOX4QE-Un9QCDIWL8E-Ii2X62-DvcyXkDRnN1T8O8/exec';
+    let matchData = {};
+    let defaultDate = '';
 
-    async function fetchData() {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      allData = data;
-      populateFilters();
-      render();
-    }
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        defaultDate = data._defaultDate;
+        delete data._defaultDate;
+        matchData = data;
+        populateFilters();
+        renderResults();
+      });
 
     function populateFilters() {
-      const teams = new Set();
-      const divisions = new Set();
-      const courts = new Set();
-      const dates = Object.keys(allData).filter(k => !k.startsWith("_"));
-      dates.forEach(date => {
-        allData[date].forEach(match => {
-          teams.add(match.team);
-          teams.add(match.opponent);
-          divisions.add(match.division);
-          courts.add(match.location);
+      const teamSet = new Set(), divisionSet = new Set(), courtSet = new Set(), dateSet = [];
+      for (let date in matchData) {
+        dateSet.push(date);
+        matchData[date].forEach(match => {
+          teamSet.add(match.team);
+          teamSet.add(match.opponent);
+          divisionSet.add(match.division);
+          courtSet.add(match.location);
         });
-      });
-      setOptions("teamFilter", [...teams].sort());
-      setOptions("divisionFilter", [...divisions].sort());
-      setOptions("courtFilter", [...courts].sort());
-      setOptions("dateFilter", dates);
-      document.getElementById("dateFilter").value = allData._defaultDate || "";
+      }
+      populateSelect('teamFilter', [...teamSet].sort());
+      populateSelect('divisionFilter', [...divisionSet].sort());
+      populateSelect('courtFilter', [...courtSet].sort());
+      populateSelect('dateFilter', dateSet);
+      document.getElementById('dateFilter').value = defaultDate;
     }
 
-    function setOptions(id, values) {
+    function populateSelect(id, items) {
       const select = document.getElementById(id);
-      values.forEach(v => {
-        const option = document.createElement("option");
-        option.value = v;
-        option.textContent = v;
+      items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
         select.appendChild(option);
       });
     }
 
     function resetFilters() {
-      ["teamFilter", "divisionFilter", "courtFilter", "dateFilter"].forEach(id => {
-        document.getElementById(id).value = "";
-      });
-      render();
+      document.getElementById('teamFilter').value = '';
+      document.getElementById('divisionFilter').value = '';
+      document.getElementById('courtFilter').value = '';
+      document.getElementById('dateFilter').value = defaultDate;
+      renderResults();
     }
 
-    function render() {
-      const team = document.getElementById("teamFilter").value;
-      const division = document.getElementById("divisionFilter").value;
-      const court = document.getElementById("courtFilter").value;
-      const date = document.getElementById("dateFilter").value;
-      const container = document.getElementById("schedule");
-      container.innerHTML = "";
-
-      Object.keys(allData).forEach(dateKey => {
-        if (date && dateKey !== date) return;
-        allData[dateKey].forEach((match, index) => {
-          const matchTeam = match.team;
-          const matchOpponent = match.opponent;
-          if (
-            (team && matchTeam !== team && matchOpponent !== team) ||
-            (division && match.division !== division) ||
-            (court && match.location !== court)
-          ) return;
-
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `
-            <h2><span class="highlight">${match.team}</span> vs <span class="highlight">${match.opponent}</span></h2>
-            <p><strong>Time:</strong> ${match.time}</p>
-            <p><strong>Court:</strong> ${match.location}</p>
-            <p><strong>Division:</strong> ${match.division}</p>
-            <p><strong>Duty Team:</strong> ${match.dutyTeam}</p>
-          `;
-          if (match.allowSubmit) {
-            const btn = document.createElement("button");
-            btn.className = "result-btn";
-            btn.textContent = "Enter Result (Referee use only)";
-            btn.onclick = async () => {
-              const pass = prompt("Enter Passcode");
-              if (!pass) return;
-              const checkUrl = `${apiUrl}?action=validate&date=${encodeURIComponent(dateKey)}&index=${index}&passcode=${encodeURIComponent(pass)}`;
-              const resp = await fetch(checkUrl);
-              const result = await resp.text();
-              if (result.trim() === "PASS_OK") {
-                currentMatch = { date: dateKey, index, team: match.team, opponent: match.opponent };
-                document.getElementById("popupTitle").textContent = `${match.team} vs ${match.opponent}`;
-                document.getElementById("teamAName").textContent = match.team;
-                document.getElementById("teamBName").textContent = match.opponent;
-                document.querySelectorAll(".scoreInput").forEach(el => el.value = "");
-                document.getElementById("scoreDialog").showModal();
-              } else {
-                alert("❌ Passcode Error");
-              }
-            };
-            card.appendChild(btn);
-          }
-          container.appendChild(card);
-        });
-      });
-    }
-
-    document.getElementById("submitScore").onclick = async () => {
-      const payload = {
-        action: "submit",
-        date: currentMatch.date,
-        index: currentMatch.index,
-        scores: [1,2,3,4,5].map(i => [
-          document.getElementById(`scoreA${i}`).value || "",
-          document.getElementById(`scoreB${i}`).value || ""
-        ])
-      };
-      await fetch(apiUrl + "?action=submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      document.getElementById("scoreDialog").close();
-      alert("✅ Score submitted!");
-      fetchData();
-    };
-
-    ["teamFilter", "divisionFilter", "courtFilter", "dateFilter"].forEach(id => {
-      document.getElementById(id).addEventListener("change", render);
+    document.querySelectorAll('select').forEach(el => {
+      el.addEventListener('change', renderResults);
     });
 
-    fetchData();
+    function renderResults() {
+      const team = document.getElementById('teamFilter').value;
+      const division = document.getElementById('divisionFilter').value;
+      const court = document.getElementById('courtFilter').value;
+      const date = document.getElementById('dateFilter').value;
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+
+      if (!matchData[date]) return;
+
+      matchData[date].forEach((match, idx) => {
+        if (team && team !== match.team && team !== match.opponent) return;
+        if (division && division !== match.division) return;
+        if (court && court !== match.location) return;
+
+        const card = document.createElement('div');
+        card.className = 'match-card';
+        card.innerHTML = `
+          <strong>${match.team} <span class="highlight">vs</span> ${match.opponent}</strong>
+          Time: ${match.time}<br>
+          Court: ${match.location}<br>
+          Duty: ${match.dutyTeam}<br>
+        `;
+
+        if (match.allowSubmit) {
+          const btn = document.createElement('button');
+          btn.textContent = 'Enter Result (Referee use only)';
+          btn.style.background = '#007aff';
+          btn.style.color = 'white';
+          btn.style.marginTop = '10px';
+          btn.style.border = 'none';
+          btn.style.padding = '8px 12px';
+          btn.style.borderRadius = '8px';
+          btn.onclick = () => enterPasscodePrompt(date, idx, match);
+          card.appendChild(btn);
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function enterPasscodePrompt(date, index, match) {
+      const code = prompt('Enter referee passcode');
+      if (!code) return;
+      fetch(`${API_URL}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${code}`)
+        .then(r => r.text())
+        .then(result => {
+          if (result === 'PASS_OK') showScorePopup(date, index, match);
+          else alert('Passcode Error');
+        });
+    }
+
+    function showScorePopup(date, index, match) {
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      const popup = document.createElement('div');
+      popup.className = 'popup';
+
+      popup.innerHTML = `
+        <div style="text-align:center; font-weight:bold; margin-bottom:10px;">${match.team} vs ${match.opponent}</div>
+        <table style="margin:auto; text-align:center">
+          <tr><th></th><th>${match.team}</th><th>${match.opponent}</th></tr>
+          ${[1,2,3,4,5].map(i => `
+            <tr>
+              <td>${i} Set</td>
+              <td><input type="number" id="s${i}_a" inputmode="numeric" style="width:50px"></td>
+              <td><input type="number" id="s${i}_b" inputmode="numeric" style="width:50px"></td>
+            </tr>`).join('')}
+        </table>
+        <div style="text-align:center; margin-top:10px;">
+          <button id="submitScores">Submit</button>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+
+      document.getElementById('submitScores').onclick = () => {
+        const params = new URLSearchParams();
+        params.append('action', 'submitScores');
+        params.append('date', date);
+        params.append('index', index);
+        for (let i = 1; i <= 5; i++) {
+          const a = document.getElementById(`s${i}_a`).value;
+          const b = document.getElementById(`s${i}_b`).value;
+          if (a) params.append(`s${i}_a`, a);
+          if (b) params.append(`s${i}_b`, b);
+        }
+        fetch(`${API_URL}?${params.toString()}`)
+          .then(r => r.text())
+          .then(resp => {
+            if (resp === 'SUCCESS') {
+              overlay.remove();
+              popup.remove();
+              match.allowSubmit = false;
+              renderResults();
+            } else alert('Submission failed: ' + resp);
+          });
+      };
+    }
   </script>
 </body>
 </html>
