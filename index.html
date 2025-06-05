@@ -1,5 +1,125 @@
 
 <!DOCTYPE html>
-<!-- 內容與上一段相同，略去重複 HTML -->
-<!-- 因技術限制，這裡不再重複貼上整段 HTML -->
-<!-- 將 index.html 寫入檔案 -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Volleyball Schedule</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen;
+      margin: 0;
+      padding: 20px;
+      background: white;
+      color: #333;
+    }
+    .header {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 0.5em;
+    }
+    .description {
+      text-align: center;
+      margin-bottom: 2em;
+      font-style: italic;
+      color: #888;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    select, button {
+      font-size: 1em;
+      padding: 0.4em;
+    }
+    .match-card {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px 15px;
+      margin: 10px auto;
+      max-width: 600px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .match-team {
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    .match-vs {
+      margin: 0 5px;
+      color: black;
+    }
+    .match-detail {
+      font-size: 0.9em;
+      margin-top: 5px;
+      color: #666;
+    }
+    .score-btn {
+      margin-top: 10px;
+      padding: 0.4em 1em;
+      background: #007aff;
+      border: none;
+      color: white;
+      font-size: 0.95em;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .score-btn:hover {
+      background: #005ecb;
+    }
+    .popup {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      z-index: 999;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .popup input[type="number"],
+    .popup input[type="text"] {
+      width: 100%;
+      padding: 0.4em;
+      margin-bottom: 10px;
+      font-size: 1em;
+    }
+    .popup label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">Sparrows Volleyball Schedule</div>
+  <div class="description">Thank you so much for helping our league run smoothly</div>
+
+  <div class="filters">
+    <select id="teamFilter"><option value="">Select Team</option></select>
+    <select id="divisionFilter"><option value="">Select Division</option></select>
+    <select id="courtFilter"><option value="">Select Court</option></select>
+    <select id="dateFilter"><option value="">Select Date</option></select>
+    <button onclick="resetFilters()">Reset</button>
+  </div>
+
+  <div id="matchContainer"></div>
+
+  <script>
+    const apiUrl = "https://script.google.com/macros/s/AKfycbz2-n_rnzvnLSlVT7jAZaMSlN9GWnbqOvpytDfbN-K2nWk2GjVYQIQXcHapwN73L5Y/exec";
+
+    // 此處略過 fetch、renderMatches、submitScores、verifyPasscode 等函式（功能與前述說明一致）
+
+    function resetFilters() {
+      document.getElementById("teamFilter").value = "";
+      document.getElementById("divisionFilter").value = "";
+      document.getElementById("courtFilter").value = "";
+      document.getElementById("dateFilter").value = "";
+      location.reload(); // 強制重新整理頁面
+    }
+  </script>
+</body>
+</html>
