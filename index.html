@@ -102,7 +102,7 @@
 </head>
 <body>
   <h1>🏐 Volleyball Schedule</h1>
-  <div class="subtext">Ver 1.05</div>
+  <div class="subtext">Ver 1.06</div>
 
   <label>Filter by:</label>
   <select id="teamSelect"></select>
@@ -114,7 +114,7 @@
   <div id="results"></div>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbz1SitOfkUS-CqeYMaKWRo5bk5-Kpcjr6x_8za1LuQ5192zw6Ahch1OamJ6r5Yx5Fg/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbwZSMUu0cqfseiGjOSPDHcxzR72XdJVVMI3Z70V2-3XcLekj6bScI1j0YUHAtIJFSo/exec';
     let scheduleData = {};
     let defaultDate = "";
 
@@ -234,15 +234,15 @@
       })
       .then(res => res.text())
       .then(resp => {
-        if (resp !== 'PASS_OK') {
-          alert("Passcode Error");
+        if (resp === 'PASS_OK') {
+          showScoreInputPopup(date, index, team1, team2, btnElement, pass);
         } else {
-          showScoreInputPopup(date, index, team1, team2, btnElement);
+          alert("Passcode Error");
         }
       });
     }
 
-    function showScoreInputPopup(date, index, team1, team2, btnElement) {
+    function showScoreInputPopup(date, index, team1, team2, btnElement, passcode) {
       const overlay = document.createElement('div');
       overlay.className = 'popup-overlay';
       const popup = document.createElement('div');
@@ -259,13 +259,13 @@
             </tr>
           `).join('')}
         </table>
-        <br><button onclick="submitScores('${date}', ${index}, this, '${team1}', '${team2}', ${btnElement ? 'true' : 'false'})">Submit</button>
+        <br><button onclick="submitScores('${date}', ${index}, '${passcode}', this, ${btnElement ? 'true' : 'false'})">Submit</button>
       `;
       document.body.appendChild(overlay);
       document.body.appendChild(popup);
     }
 
-    function submitScores(date, index, btn, team1, team2, updateBtn) {
+    function submitScores(date, index, passcode, btn, updateBtn) {
       const scores = [];
       for (let i = 1; i <= 5; i++) {
         let a = document.getElementById(`t1s${i}`).value;
@@ -275,7 +275,7 @@
 
       fetch(apiUrl, {
         method: 'POST',
-        body: JSON.stringify({ date, index, passcode: "SUBMIT", scores }),
+        body: JSON.stringify({ date, index, passcode, scores }),
         headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.text())
