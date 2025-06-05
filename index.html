@@ -105,24 +105,16 @@
   <div class="subtext">Thank you so much for helping our league run smoothly</div>
 
   <label>Filter by:</label>
-  <select id="teamSelect">
-    <option value="">Select Team</option>
-  </select>
-  <select id="divisionSelect">
-    <option value="">Select Division</option>
-  </select>
-  <select id="courtSelect">
-    <option value="">Select Court</option>
-  </select>
-  <select id="dateSelect">
-    <option value="">Select Date</option>
-  </select>
+  <select id="teamSelect"></select>
+  <select id="divisionSelect"></select>
+  <select id="courtSelect"></select>
+  <select id="dateSelect"></select>
   <button onclick="resetFilters()">Reset Filters</button>
 
   <div id="results"></div>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycby35MpkUsj8gWZdBhstdKaAMUAvAvhhqVNd7OSsRXFls2jhykjK0kkKmOqkBo8wyeY/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbz1SitOfkUS-CqeYMaKWRo5bk5-Kpcjr6x_8za1LuQ5192zw6Ahch1OamJ6r5Yx5Fg/exec';
     let scheduleData = {};
     let defaultDate = "";
 
@@ -162,6 +154,7 @@
 
     function fillSelect(id, items, sort = true) {
       const select = document.getElementById(id);
+      select.innerHTML = `<option value="">Select ${id.replace('Select','')}</option>`;
       const options = sort ? [...items].sort() : [...items];
       options.forEach(item => {
         const opt = document.createElement('option');
@@ -221,7 +214,7 @@
               const btn = document.createElement('button');
               btn.className = 'enter-btn';
               btn.textContent = 'Enter Result (Referee use only)';
-              btn.onclick = () => verifyPasscodeAndInput(date, i, match.team, match.opponent);
+              btn.onclick = () => verifyPasscodeAndInput(date, i, match.team, match.opponent, btn);
               div.appendChild(btn);
             }
             results.appendChild(div);
@@ -230,7 +223,7 @@
       });
     }
 
-    function verifyPasscodeAndInput(date, index, team1, team2) {
+    function verifyPasscodeAndInput(date, index, team1, team2, btnElement) {
       const pass = prompt("Enter passcode:");
       if (!pass) return;
 
@@ -244,12 +237,12 @@
         if (resp !== 'PASS_OK') {
           alert("Passcode Error");
         } else {
-          showScoreInputPopup(date, index, team1, team2);
+          showScoreInputPopup(date, index, team1, team2, btnElement);
         }
       });
     }
 
-    function showScoreInputPopup(date, index, team1, team2) {
+    function showScoreInputPopup(date, index, team1, team2, btnElement) {
       const overlay = document.createElement('div');
       overlay.className = 'popup-overlay';
       const popup = document.createElement('div');
@@ -261,18 +254,18 @@
           ${[1,2,3,4,5].map(i => `
             <tr>
               <td>${i} Set</td>
-              <td><input type="number" min="0" id="t1s${i}" /></td>
-              <td><input type="number" min="0" id="t2s${i}" /></td>
+              <td><input type="number" inputmode="numeric" id="t1s${i}" /></td>
+              <td><input type="number" inputmode="numeric" id="t2s${i}" /></td>
             </tr>
           `).join('')}
         </table>
-        <br><button onclick="submitScores('${date}', ${index})">Submit</button>
+        <br><button onclick="submitScores('${date}', ${index}, this, '${team1}', '${team2}', ${btnElement ? 'true' : 'false'})">Submit</button>
       `;
       document.body.appendChild(overlay);
       document.body.appendChild(popup);
     }
 
-    function submitScores(date, index) {
+    function submitScores(date, index, btn, team1, team2, updateBtn) {
       const scores = [];
       for (let i = 1; i <= 5; i++) {
         let a = document.getElementById(`t1s${i}`).value;
@@ -288,7 +281,9 @@
       .then(res => res.text())
       .then(msg => {
         alert(msg);
-        location.reload();
+        document.querySelector('.popup-overlay').remove();
+        document.querySelector('.popup').remove();
+        if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
       });
     }
   </script>
