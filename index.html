@@ -63,6 +63,30 @@
       cursor: pointer;
       margin-top: 0.5rem;
     }
+    dialog {
+      border: none;
+      border-radius: 12px;
+      padding: 1rem;
+      max-width: 400px;
+    }
+    dialog input[type="number"] {
+      width: 60px;
+      padding: 0.3rem;
+      font-size: 1rem;
+      margin: 0.2rem;
+    }
+    .score-table {
+      display: flex;
+      justify-content: space-between;
+    }
+    .score-table > div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .score-labels {
+      text-align: left;
+    }
   </style>
 </head>
 <body>
@@ -76,9 +100,39 @@
     <button onclick="resetFilters()">Reset</button>
   </div>
   <div id="schedule"></div>
+
+  <dialog id="scoreDialog">
+    <form method="dialog">
+      <h3 id="popupTitle"></h3>
+      <div class="score-table">
+        <div class="score-labels">
+          <p>1st Set</p><p>2nd Set</p><p>3rd Set</p><p>4th Set</p><p>5th Set</p>
+        </div>
+        <div>
+          <strong id="teamAName"></strong>
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA1">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA2">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA3">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA4">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreA5">
+        </div>
+        <div>
+          <strong id="teamBName"></strong>
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB1">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB2">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB3">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB4">
+          <input type="number" min="0" inputmode="numeric" class="scoreInput" id="scoreB5">
+        </div>
+      </div>
+      <button id="submitScore" type="submit">Submit</button>
+    </form>
+  </dialog>
+
   <script>
     const apiUrl = "https://script.google.com/macros/s/AKfycbySZw8bpjzQyQbh0HeMlpybUkauDSSqEIGBaqE5dePWTCWfvTftYAHFIJCwsJ7aUBs/exec";
     let allData = {};
+    let currentMatch = {};
 
     async function fetchData() {
       const res = await fetch(apiUrl);
@@ -164,7 +218,12 @@
               const resp = await fetch(checkUrl);
               const result = await resp.text();
               if (result.trim() === "PASS_OK") {
-                alert("✅ Correct passcode. You may now enter scores. (Score input popup coming soon)");
+                currentMatch = { date: dateKey, index, team: match.team, opponent: match.opponent };
+                document.getElementById("popupTitle").textContent = `${match.team} vs ${match.opponent}`;
+                document.getElementById("teamAName").textContent = match.team;
+                document.getElementById("teamBName").textContent = match.opponent;
+                document.querySelectorAll(".scoreInput").forEach(el => el.value = "");
+                document.getElementById("scoreDialog").showModal();
               } else {
                 alert("❌ Passcode Error");
               }
@@ -175,6 +234,26 @@
         });
       });
     }
+
+    document.getElementById("submitScore").onclick = async () => {
+      const payload = {
+        action: "submit",
+        date: currentMatch.date,
+        index: currentMatch.index,
+        scores: [1,2,3,4,5].map(i => [
+          document.getElementById(`scoreA${i}`).value || "",
+          document.getElementById(`scoreB${i}`).value || ""
+        ])
+      };
+      await fetch(apiUrl + "?action=submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById("scoreDialog").close();
+      alert("✅ Score submitted!");
+      fetchData();
+    };
 
     ["teamFilter", "divisionFilter", "courtFilter", "dateFilter"].forEach(id => {
       document.getElementById(id).addEventListener("change", render);
