@@ -3,254 +3,184 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Volleyball Schedule</title>
+  <title>Sparrows Volleyball Schedule</title>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       background: #fff;
-      padding: 2rem;
-      max-width: 900px;
-      margin: auto;
-      color: #1d1d1f;
+      color: #333;
+      margin: 0;
+      padding: 1rem;
     }
     h1 {
       font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
     }
-    .subtext {
+    p.description {
+      text-align: center;
       font-size: 1rem;
-      color: #6e6e73;
+      color: #666;
       margin-bottom: 1.5rem;
     }
-    select, button {
-      margin: 0.5rem 1rem 1rem 0;
-      padding: 0.5rem 1rem;
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .filters select, .filters button {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
       font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
     }
-    .match-card {
-      border: 1px solid #d2d2d7;
-      padding: 1.2rem;
+    .card {
+      border: 1px solid #ddd;
       border-radius: 12px;
-      margin-bottom: 1rem;
-      background: #f5f5f7;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .match-card .vs-line {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #0b5394;
-      margin-bottom: 0.4rem;
-    }
-    .match-card .details {
-      font-size: 0.95rem;
-      color: #3c3c43;
-      margin: 0.2rem 0;
-    }
-    .match-date {
-      margin-top: 2rem;
-      font-size: 1.1rem;
-      font-weight: 500;
-      border-bottom: 1px solid #e5e5ea;
-      padding-bottom: 0.4rem;
-      color: #333;
-    }
-    .enter-btn {
-      background: #007aff;
-      color: white;
-      font-weight: 500;
-      padding: 0.4rem 0.8rem;
-      margin-top: 0.8rem;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .enter-btn:hover {
-      background: #0051c6;
-    }
-    .popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 1px solid #ccc;
       padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 1000;
+      margin: 1rem auto;
+      max-width: 600px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .popup h3 {
-      margin-bottom: 1rem;
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      color: #111;
     }
-    .popup input {
-      width: 60px;
-      padding: 0.4rem;
-      text-align: center;
-      margin: 0.2rem;
+    .highlight {
+      font-weight: bold;
+      font-size: 1.1rem;
     }
-    .popup-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 999;
+    .result-btn {
+      background-color: #007aff;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <h1>🏐 Volleyball Schedule</h1>
-  <div class="subtext">Ver 1.013</div>
-
-  <label>Filter by:</label>
-  <select id="teamSelect"></select>
-  <select id="divisionSelect"></select>
-  <select id="courtSelect"></select>
-  <select id="dateSelect"></select>
-  <button onclick="resetFilters()">Reset Filters</button>
-
-  <div id="results"></div>
-
+  <h1>Sparrows Volleyball Schedule</h1>
+  <p class="description">Thank you so much for helping our league run smoothly</p>
+  <div class="filters">
+    <select id="teamFilter"><option value="">Select Team</option></select>
+    <select id="divisionFilter"><option value="">Select Division</option></select>
+    <select id="courtFilter"><option value="">Select Court</option></select>
+    <select id="dateFilter"><option value="">Select Date</option></select>
+    <button onclick="resetFilters()">Reset</button>
+  </div>
+  <div id="schedule"></div>
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbyxGQS-gLFVXE7_zp3FMSf1J4ajKpcNu-69Dvd1B2DMridLea_ukmJY7Y9nhk5238Y/exec';
-    let scheduleData = {};
-    let defaultDate = "";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbySZw8bpjzQyQbh0HeMlpybUkauDSSqEIGBaqE5dePWTCWfvTftYAHFIJCwsJ7aUBs/exec";
+    let allData = {};
 
-    fetch(apiUrl)
-      .then(res => res.json())
-      .then(data => {
-        console.log("Data fetched:", data);
-        scheduleData = data;
-        defaultDate = data._defaultDate || "";
-        populateFilters();
-        document.getElementById('dateSelect').value = defaultDate;
-        renderMatches();
-      })
-      .catch(err => console.error("Fetch error:", err));
+    async function fetchData() {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      allData = data;
+      populateFilters();
+      render();
+    }
 
     function populateFilters() {
-      const teams = new Set(), divisions = new Set(), courts = new Set();
-      const dates = [], dateSet = new Set();
-
-      const orderedDates = Object.keys(scheduleData).filter(k => k !== '_defaultDate');
-      orderedDates.forEach(date => {
-        if (!dateSet.has(date)) {
-          dates.push(date);
-          dateSet.add(date);
-        }
-        scheduleData[date].forEach(match => {
+      const teams = new Set();
+      const divisions = new Set();
+      const courts = new Set();
+      const dates = Object.keys(allData).filter(k => !k.startsWith("_"));
+      dates.forEach(date => {
+        allData[date].forEach(match => {
           teams.add(match.team);
           teams.add(match.opponent);
           divisions.add(match.division);
           courts.add(match.location);
         });
       });
-
-      fillSelect('teamSelect', teams);
-      fillSelect('divisionSelect', divisions);
-      fillSelect('courtSelect', courts);
-      fillSelect('dateSelect', dates, false);
+      setOptions("teamFilter", [...teams].sort());
+      setOptions("divisionFilter", [...divisions].sort());
+      setOptions("courtFilter", [...courts].sort());
+      setOptions("dateFilter", dates);
+      document.getElementById("dateFilter").value = allData._defaultDate || "";
     }
 
-    function fillSelect(id, items, sort = true) {
+    function setOptions(id, values) {
       const select = document.getElementById(id);
-      select.innerHTML = `<option value="">Select ${id.replace('Select','')}</option>`;
-      const options = sort ? [...items].sort() : [...items];
-      options.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item;
-        opt.textContent = item;
-        select.appendChild(opt);
+      values.forEach(v => {
+        const option = document.createElement("option");
+        option.value = v;
+        option.textContent = v;
+        select.appendChild(option);
       });
     }
-
-    ['teamSelect', 'divisionSelect', 'courtSelect', 'dateSelect'].forEach(id => {
-      document.getElementById(id).addEventListener('change', renderMatches);
-    });
 
     function resetFilters() {
-      ['teamSelect', 'divisionSelect', 'courtSelect', 'dateSelect'].forEach(id => {
-        document.getElementById(id).value = '';
+      ["teamFilter", "divisionFilter", "courtFilter", "dateFilter"].forEach(id => {
+        document.getElementById(id).value = "";
       });
-      renderMatches();
+      render();
     }
 
-    function renderMatches() {
-      const selectedTeam = document.getElementById('teamSelect').value;
-      const selectedDivision = document.getElementById('divisionSelect').value;
-      const selectedCourt = document.getElementById('courtSelect').value;
-      const selectedDate = document.getElementById('dateSelect').value;
-      const results = document.getElementById('results');
-      results.innerHTML = '';
+    function render() {
+      const team = document.getElementById("teamFilter").value;
+      const division = document.getElementById("divisionFilter").value;
+      const court = document.getElementById("courtFilter").value;
+      const date = document.getElementById("dateFilter").value;
+      const container = document.getElementById("schedule");
+      container.innerHTML = "";
 
-      const orderedDates = Object.keys(scheduleData).filter(k => k !== '_defaultDate');
+      Object.keys(allData).forEach(dateKey => {
+        if (date && dateKey !== date) return;
+        allData[dateKey].forEach((match, index) => {
+          const matchTeam = match.team;
+          const matchOpponent = match.opponent;
+          if (
+            (team && matchTeam !== team && matchOpponent !== team) ||
+            (division && match.division !== division) ||
+            (court && match.location !== court)
+          ) return;
 
-      orderedDates.forEach(date => {
-        if (selectedDate && selectedDate !== date) return;
-
-        const filtered = scheduleData[date].filter(match => {
-          const hasTeam = (match.team === selectedTeam || match.opponent === selectedTeam || match.dutyTeam === selectedTeam || !selectedTeam);
-          const hasDivision = (match.division === selectedDivision || !selectedDivision);
-          const hasCourt = (match.location === selectedCourt || !selectedCourt);
-          return hasTeam && hasDivision && hasCourt;
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h2><span class="highlight">${match.team}</span> vs <span class="highlight">${match.opponent}</span></h2>
+            <p><strong>Time:</strong> ${match.time}</p>
+            <p><strong>Court:</strong> ${match.location}</p>
+            <p><strong>Division:</strong> ${match.division}</p>
+            <p><strong>Duty Team:</strong> ${match.dutyTeam}</p>
+          `;
+          if (match.allowSubmit) {
+            const btn = document.createElement("button");
+            btn.className = "result-btn";
+            btn.textContent = "Enter Result (Referee use only)";
+            btn.onclick = async () => {
+              const pass = prompt("Enter Passcode");
+              if (!pass) return;
+              const checkUrl = `${apiUrl}?action=validate&date=${encodeURIComponent(dateKey)}&index=${index}&passcode=${encodeURIComponent(pass)}`;
+              const resp = await fetch(checkUrl);
+              const result = await resp.text();
+              if (result.trim() === "PASS_OK") {
+                alert("✅ Correct passcode. You may now enter scores. (Score input popup coming soon)");
+              } else {
+                alert("❌ Passcode Error");
+              }
+            };
+            card.appendChild(btn);
+          }
+          container.appendChild(card);
         });
-
-        if (filtered.length > 0) {
-          const dateTitle = document.createElement('div');
-          dateTitle.className = 'match-date';
-          dateTitle.textContent = date;
-          results.appendChild(dateTitle);
-
-          filtered.forEach((match, i) => {
-            const div = document.createElement('div');
-            div.className = 'match-card';
-            div.innerHTML = `
-              <div class="vs-line">${match.team} vs ${match.opponent}</div>
-              <div class="details">🕒 ${match.time} | 🏟️ <strong>${match.location}</strong></div>
-              <div class="details">📂 Division: <span style="color:#1d70b8">${match.division}</span></div>
-              <div class="details">👷 Duty Team: <span style="color:#d32f2f">${match.dutyTeam}</span></div>
-            `;
-            if (match.allowSubmit) {
-              const btn = document.createElement('button');
-              btn.className = 'enter-btn';
-              btn.textContent = 'Enter Result (Referee use only)';
-              btn.onclick = () => verifyPasscodeAndInput(date, i, match.team, match.opponent, btn);
-              div.appendChild(btn);
-            }
-            results.appendChild(div);
-          });
-        }
       });
     }
 
-    function verifyPasscodeAndInput(date, index, team1, team2, btnElement) {
-      const pass = prompt("Enter passcode:");
-      if (!pass) return;
-      console.log("Sending passcode to validate:", pass);
+    ["teamFilter", "divisionFilter", "courtFilter", "dateFilter"].forEach(id => {
+      document.getElementById(id).addEventListener("change", render);
+    });
 
-      fetch(apiUrl, {
-        method: 'POST',
-        body: JSON.stringify({ date, index, passcode: pass, validateOnly: true }),
-        headers: { 'Content-Type': 'application/json' }
-      })
-      .then(res => res.text())
-      .then(resp => {
-        console.log("Passcode validation response:", resp);
-        if (resp.trim() === 'PASS_OK') {
-          showScoreInputPopup(date, index, team1, team2, btnElement, pass);
-        } else {
-          alert("Passcode Error");
-        }
-      })
-      .catch(err => {
-        console.error("Passcode validation failed:", err);
-        alert("Error validating passcode.");
-      });
-    }
-
-    // (submitScores and showScoreInputPopup remain unchanged)
+    fetchData();
   </script>
 </body>
 </html>
