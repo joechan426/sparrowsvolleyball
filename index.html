@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Volleyball Schedule</title>
+  <title>Volleyball Weekly Schedule</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -61,7 +62,7 @@
 </head>
 <body>
   <h1>Volleyball Weekly Schedule</h1>
-  <p style="text-align:center;">Ver 1.018</p>
+  <p style="text-align:center;">Thank you so much for helping our league run smoothly</p>
   <div style="text-align:center; margin-bottom:20px;">
     <select id="teamFilter"><option value="">Select Team</option></select>
     <select id="divisionFilter"><option value="">Select Division</option></select>
@@ -72,7 +73,7 @@
   <div id="scheduleContainer"></div>
 
   <script>
-    const apiUrl = "https://script.google.com/macros/s/AKfycbzcph6-6MiJU7v_XKcM6BHi80WOX4QE-Un9QCDIWL8E-Ii2X62-DvcyXkDRnN1T8O8/exec";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbySZw8bpjzQyQbh0HeMlpybUkauDSSqEIGBaqE5dePWTCWfvTftYAHFIJCwsJ7aUBs/exec";
     let fullData = {}, defaultDate = "";
 
     fetch(apiUrl)
@@ -170,7 +171,7 @@
           btn.style.borderRadius = "6px";
           btn.style.padding = "6px 12px";
           btn.style.marginTop = "10px";
-          btn.id = `btn-${date}-${index}`;
+          btn.id = `btn-${encodeURIComponent(date)}-${index}`;
           btn.onclick = () => enterResult(match, index, date);
           card.appendChild(btn);
         }
@@ -244,7 +245,7 @@
           if (result.trim() === "SUBMIT_OK") {
             alert("Result submitted successfully!");
             document.getElementById("scorePopup").remove();
-            document.querySelector(`#btn-${date}-${index}`)?.remove();
+            document.querySelector(`#btn-${encodeURIComponent(date)}-${index}`)?.remove();
           } else {
             alert("Submission failed. Try again.");
           }
