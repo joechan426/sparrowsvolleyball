@@ -223,38 +223,44 @@
       document.body.appendChild(popup);
     }
 
-    function submitScores(index, date) {
-      const inputs = document.querySelectorAll("#scorePopup input[type='number']");
-      const aScores = [...inputs].filter((_, i) => i % 2 === 0).map(input => input.value);
-      const bScores = [...inputs].filter((_, i) => i % 2 === 1).map(input => input.value);
+    function sanitizeId(str) {
+  return str.replace(/[^a-zA-Z0-9_-]/g, "_");
+}
 
-      const params = new URLSearchParams({
-        action: "submitScores",
-        date: date,
-        index: index,
-        a1: aScores[0], b1: bScores[0],
-        a2: aScores[1], b2: bScores[1],
-        a3: aScores[2], b3: bScores[2],
-        a4: aScores[3], b4: bScores[3],
-        a5: aScores[4], b5: bScores[4]
-      });
+function submitScores(index, date) {
+  const inputs = document.querySelectorAll("#scorePopup input[type='number']");
+  const aScores = [...inputs].filter((_, i) => i % 2 === 0).map(input => input.value);
+  const bScores = [...inputs].filter((_, i) => i % 2 === 1).map(input => input.value);
 
-      fetch(apiUrl + "?" + params.toString())
-        .then(res => res.text())
-        .then(result => {
-          if (result.trim() === "SUBMIT_OK") {
-            alert("Result submitted successfully!");
-            document.getElementById("scorePopup").remove();
-            document.querySelector(`#btn-${encodeURIComponent(date)}-${index}`)?.remove();
-          } else {
-            alert("Submission failed. Try again.");
-          }
-        })
-        .catch(err => {
-          console.error("Submission error:", err);
-          alert("An error occurred. Please try again later.");
-        });
-    }
+  const params = new URLSearchParams({
+    action: "submitScores",
+    date: date,
+    index: index,
+    a1: aScores[0], b1: bScores[0],
+    a2: aScores[1], b2: bScores[1],
+    a3: aScores[2], b3: bScores[2],
+    a4: aScores[3], b4: bScores[3],
+    a5: aScores[4], b5: bScores[4]
+  });
+
+  const btnId = `btn-${sanitizeId(date)}-${index}`;
+
+  fetch(apiUrl + "?" + params.toString())
+    .then(res => res.text())
+    .then(result => {
+      if (result.trim() === "SUBMIT_OK") {
+        alert("Result submitted successfully!");
+        document.getElementById("scorePopup")?.remove();
+        document.getElementById(btnId)?.remove(); // 正確移除按鈕
+      } else {
+        alert("Submission failed. Try again.");
+      }
+    })
+    .catch(err => {
+      console.error("Submission error:", err);
+      alert("An error occurred. Please try again later.");
+    });
+}
   </script>
 </body>
 </html>
