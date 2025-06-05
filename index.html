@@ -16,7 +16,12 @@
     h1 {
       font-size: 2rem;
       font-weight: 600;
-      margin-bottom: 1rem;
+      margin-bottom: 0.4rem;
+    }
+    .subtext {
+      font-size: 1rem;
+      color: #6e6e73;
+      margin-bottom: 1.5rem;
     }
     select, button {
       margin: 0.5rem 1rem 1rem 0;
@@ -52,6 +57,20 @@
       padding-bottom: 0.4rem;
       color: #333;
     }
+    .enter-btn {
+      background: #007aff;
+      color: white;
+      font-weight: 500;
+      padding: 0.4rem 0.8rem;
+      margin-top: 0.8rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .enter-btn:hover {
+      background: #0051c6;
+    }
     @media screen and (max-width: 600px) {
       body { padding: 1rem; }
       select, button { width: 100%; margin: 0.5rem 0; }
@@ -60,6 +79,7 @@
 </head>
 <body>
   <h1>🏐 Volleyball Schedule</h1>
+  <div class="subtext">Thank you so much for helping our league run smoothly</div>
 
   <label>Filter by:</label>
   <select id="teamSelect">
@@ -79,7 +99,7 @@
   <div id="results"></div>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbzOYJi9AHc3P8zWl9UWUViDft3sMvTic6zsgBWO1M_MSY1_FhkYtcHUzreCQHlMbNk/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbyulltkwDEIW-teigAQKVkp9TU1UERwWuWM9RHDE3tcS0dCIURNdvNu7IEuBRYGTJc/exec';
     let scheduleData = {};
     let defaultDate = "";
 
@@ -165,7 +185,7 @@
           dateTitle.textContent = date;
           results.appendChild(dateTitle);
 
-          filtered.forEach(match => {
+          filtered.forEach((match, i) => {
             const div = document.createElement('div');
             div.className = 'match-card';
             div.innerHTML = `
@@ -174,10 +194,38 @@
               <div class="details">📂 Division: <span style="color:#1d70b8">${match.division}</span></div>
               <div class="details">👷 Duty Team: <span style="color:#d32f2f">${match.dutyTeam}</span></div>
             `;
+            if (match.allowSubmit) {
+              const btn = document.createElement('button');
+              btn.className = 'enter-btn';
+              btn.textContent = 'Enter Result (Referee use only)';
+              btn.onclick = () => enterResult(date, i);
+              div.appendChild(btn);
+            }
             results.appendChild(div);
           });
         }
       });
+    }
+
+    function enterResult(date, index) {
+      const passcode = prompt("Enter passcode to proceed:");
+      if (!passcode) return;
+
+      const scores = [];
+      for (let i = 1; i <= 5; i++) {
+        let s1 = prompt(`Set ${i} - ${i}A 分數:`);
+        let s2 = prompt(`Set ${i} - ${i}B 分數:`);
+        scores.push([parseInt(s1), parseInt(s2)]);
+      }
+
+      fetch(apiUrl, {
+        method: 'POST',
+        body: JSON.stringify({ date, index, passcode, scores }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.text())
+      .then(msg => alert(msg))
+      .catch(err => alert("Error: " + err));
     }
   </script>
 </body>
