@@ -154,10 +154,10 @@
       for (const date in scheduleData) {
         dates.push(date);
         for (const match of scheduleData[date]) {
-          teams.add(match.teamA);
-          teams.add(match.teamB);
+          teams.add(match.team);
+          teams.add(match.opponent);
           divisions.add(match.division);
-          courts.add(match.court);
+          courts.add(match.location);
         }
       }
 
@@ -201,32 +201,34 @@
       if (!scheduleData[date]) return;
 
       scheduleData[date].forEach((match, index) => {
-        const matchTeamA = match.teamA, matchTeamB = match.teamB, duty = match.duty;
-        if (team && team !== matchTeamA && team !== matchTeamB && team !== duty) return;
+        const matchTeam = match.team,
+              matchOpponent = match.opponent,
+              duty = match.dutyTeam;
+        if (team && team !== matchTeam && team !== matchOpponent && team !== duty) return;
         if (division && match.division !== division) return;
-        if (court && match.court !== court) return;
+        if (court && match.location !== court) return;
 
         const card = document.createElement("div");
         card.className = "card";
-        const teamHTML = `<span class="team-color">${match.teamA}</span> vs <span class="team-color">${match.teamB}</span>`;
+        const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
         card.innerHTML = `
           <div class="team">${teamHTML}</div>
-          <div class="time">${match.time}</div>
-          <div class="location">Court: ${match.court}</div>
-          <div class="duty">Duty: ${match.duty}</div>
+          <div class="time">Time: ${match.time}</div>
+          <div class="location">Court: ${match.location}</div>
+          <div class="duty">Duty: ${match.dutyTeam}</div>
         `;
 
         if (match.allowResult) {
           const btn = document.createElement("button");
           btn.textContent = "Enter Result (Referee use only)";
-          btn.onclick = () => promptPasscode(date, index, match.teamA, match.teamB);
+          btn.onclick = () => promptPasscode(date, index, match.team, match.opponent);
           card.appendChild(btn);
         }
         results.appendChild(card);
       });
     }
 
-    function promptPasscode(date, index, teamA, teamB) {
+    function promptPasscode(date, index, team, opponent) {
       const overlay = document.createElement("div");
       overlay.className = "overlay";
       const popup = document.createElement("div");
@@ -236,7 +238,7 @@
           <p>Enter passcode:</p>
           <input id="passcodeInput" type="tel" inputmode="numeric" pattern="[0-9]*" />
           <div class="popup-buttons">
-            <button onclick="verifyPasscode('${date}', ${index}, '${teamA}', '${teamB}')">Submit</button>
+            <button onclick="verifyPasscode('${date}', ${index}, '${team}', '${opponent}')">Submit</button>
             <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
           </div>
         </div>
@@ -246,7 +248,7 @@
       document.getElementById("passcodeInput").focus();
     }
 
-    async function verifyPasscode(date, index, teamA, teamB) {
+    async function verifyPasscode(date, index, team, opponent) {
       const input = document.getElementById("passcodeInput").value;
       const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index + 1}&passcode=${input}`;
       const res = await fetch(url);
@@ -254,13 +256,13 @@
       document.querySelector(".popup").remove();
       document.querySelector(".overlay").remove();
       if (txt === "PASS_OK") {
-        openScorePopup(date, index, teamA, teamB);
+        openScorePopup(date, index, team, opponent);
       } else {
         alert("Passcode Error");
       }
     }
 
-    function openScorePopup(date, index, teamA, teamB) {
+    function openScorePopup(date, index, team, opponent) {
       const overlay = document.createElement("div");
       overlay.className = "overlay";
       const popup = document.createElement("div");
@@ -270,8 +272,8 @@
       const headerRow = `
         <div class="set-row">
           <span class="label-column"></span>
-          <span class="team-header">${teamA}</span>
-          <span class="team-header">${teamB}</span>
+          <span class="team-header">${team}</span>
+          <span class="team-header">${opponent}</span>
         </div>`;
       let inputFields = setLabels.map((label, i) => `
         <div class="set-row">
