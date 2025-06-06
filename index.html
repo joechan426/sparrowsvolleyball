@@ -165,7 +165,11 @@
 
       const setOptions = (id, items) => {
         const el = document.getElementById(id);
-        el.innerHTML = '<option value="">All</option>';
+        let label = "All";
+        if (id === "teamFilter") label = "All Team";
+        else if (id === "divisionFilter") label = "All Division";
+        else if (id === "courtFilter") label = "All Court";
+        el.innerHTML = `<option value="">${label}</option>`;
         [...items].forEach(item => {
           el.innerHTML += `<option value="${item}">${item}</option>`;
         });
@@ -179,7 +183,7 @@
         a.localeCompare(b, "en", { sensitivity: "base" })
       ));
       const dateSelect = document.getElementById("dateFilter");
-      dateSelect.innerHTML = '<option value="">All</option>';
+      dateSelect.innerHTML = '<option value="">All Date</option>';
       dates.forEach(d => {
         const opt = document.createElement("option");
         opt.value = d;
