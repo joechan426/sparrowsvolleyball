@@ -102,6 +102,11 @@
       flex-direction: column;
       gap: 5px;
     }
+    .team-header {
+      width: 80px;
+      text-align: center;
+      font-weight: 600;
+    }
     .team-color {
       display: inline-block;
       padding: 2px 5px;
@@ -128,9 +133,15 @@
     const apiUrl = "https://script.google.com/macros/s/AKfycbz9xgbl0i1QGLhYmZ_blhCxZvZLlhwAD4c75bhItaYCXi3U5HV5Vo7JK9zlEz9dKms/exec";
 
     async function fetchSchedule() {
-      const res = await fetch(apiUrl);
+      const res = await fetch(apiUrl, { cache: "no-store" });
       const json = await res.json();
-      scheduleData = json.schedule;
+      scheduleData = {};
+      for (const date in json.schedule) {
+        const matches = json.schedule[date];
+        if (Array.isArray(matches)) {
+          scheduleData[date] = matches.filter(Boolean);
+        }
+      }
       defaultDate = json.defaultDate;
       populateFilters();
       document.getElementById("dateFilter").value = defaultDate;
@@ -225,18 +236,19 @@
           <p>Enter passcode:</p>
           <input id="passcodeInput" type="tel" inputmode="numeric" pattern="[0-9]*" />
           <div class="popup-buttons">
-            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
             <button onclick="verifyPasscode('${date}', ${index}, '${teamA}', '${teamB}')">Submit</button>
+            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
           </div>
         </div>
       `;
       document.body.appendChild(overlay);
       document.body.appendChild(popup);
+      document.getElementById("passcodeInput").focus();
     }
 
     async function verifyPasscode(date, index, teamA, teamB) {
       const input = document.getElementById("passcodeInput").value;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
+      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index + 1}&passcode=${input}`;
       const res = await fetch(url);
       const txt = await res.text();
       document.querySelector(".popup").remove();
@@ -255,6 +267,12 @@
       popup.className = "popup";
 
       const setLabels = ["1st", "2nd", "3rd", "4th", "5th"];
+      const headerRow = `
+        <div class="set-row">
+          <span class="label-column"></span>
+          <span class="team-header">${teamA}</span>
+          <span class="team-header">${teamB}</span>
+        </div>`;
       let inputFields = setLabels.map((label, i) => `
         <div class="set-row">
           <span class="label-column">${label} Set</span>
@@ -264,7 +282,8 @@
 
       popup.innerHTML = `
         <div class="popup-content">
-          <h3>${teamA} vs ${teamB}</h3>
+          <h3>Enter Scores</h3>
+          ${headerRow}
           ${inputFields}
           <div>
             <label>Comment:</label>
@@ -272,8 +291,8 @@
             <small>Max 255 characters</small>
           </div>
           <div class="popup-buttons">
-            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
             <button onclick="submitScores('${date}', ${index})">Submit</button>
+            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
           </div>
         </div>
       `;
@@ -282,7 +301,7 @@
     }
 
     async function submitScores(date, index) {
-      const params = new URLSearchParams({ action: "submitScores", date, index });
+      const params = new URLSearchParams({ action: "submitScores", date, index: index + 1 });
       for (let i = 1; i <= 5; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
