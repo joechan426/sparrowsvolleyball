@@ -261,12 +261,30 @@
       `;
       document.body.appendChild(overlay);
       document.body.appendChild(popup);
-      popup.querySelector("#passSubmit").addEventListener("click", () => verifyPasscode(date, index, team, opponent));
-      popup.querySelector("#passCancel").addEventListener("click", () => {
+
+      const passInput = document.getElementById("passcodeInput");
+      const cleanup = () => {
         document.body.removeChild(popup);
         document.body.removeChild(overlay);
+        document.removeEventListener("keydown", onKey);
+      };
+      const onKey = (e) => {
+        if (e.key === "Enter") {
+          document.removeEventListener("keydown", onKey);
+          verifyPasscode(date, index, team, opponent);
+        } else if (e.key === "Escape") {
+          cleanup();
+        }
+      };
+      document.addEventListener("keydown", onKey);
+
+      popup.querySelector("#passSubmit").addEventListener("click", () => {
+        document.removeEventListener("keydown", onKey);
+        verifyPasscode(date, index, team, opponent);
       });
-      document.getElementById("passcodeInput").focus();
+      popup.querySelector("#passCancel").addEventListener("click", cleanup);
+
+      passInput.focus();
     }
 
     async function verifyPasscode(date, index, team, opponent) {
@@ -315,13 +333,41 @@
             <small>Max 255 characters</small>
           </div>
           <div class="popup-buttons">
-            <button onclick="submitScores('${date}', ${index})">Submit</button>
-            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
+            <button id="scoreSubmit">Submit</button>
+            <button id="scoreCancel">Cancel</button>
           </div>
         </div>
       `;
       document.body.appendChild(overlay);
       document.body.appendChild(popup);
+
+      const firstInput = popup.querySelector("#a1");
+      const submitBtn = popup.querySelector("#scoreSubmit");
+      const cancelBtn = popup.querySelector("#scoreCancel");
+
+      const cleanup = () => {
+        document.body.removeChild(popup);
+        document.body.removeChild(overlay);
+        document.removeEventListener("keydown", onKey);
+      };
+
+      const onKey = (e) => {
+        if (e.key === "Enter") {
+          document.removeEventListener("keydown", onKey);
+          submitScores(date, index);
+        } else if (e.key === "Escape") {
+          cleanup();
+        }
+      };
+
+      document.addEventListener("keydown", onKey);
+      submitBtn.addEventListener("click", () => {
+        document.removeEventListener("keydown", onKey);
+        submitScores(date, index);
+      });
+      cancelBtn.addEventListener("click", cleanup);
+
+      firstInput.focus();
     }
 
     async function submitScores(date, index) {
