@@ -125,7 +125,7 @@
   <script>
     let scheduleData = {};
     let defaultDate = "";
-    const apiUrl = "https://script.google.com/macros/s/AKfycbz9xgbl0i1QGLhYmZ_blhCxZvZLlhwAD4c75bhItaYCXi3U5HV5Vo7JK9zlEz9dKms/exec";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbz2-n_rnzvnLSlVT7jAZaMSlN9GWnbqOvpytDfbN-K2nWk2GjVYQIQXcHapwN73L5Y/exec";
 
     async function fetchSchedule() {
       const res = await fetch(apiUrl);
@@ -288,7 +288,7 @@
         params.append("b" + i, document.getElementById("b" + i).value);
       }
       params.append("comment", document.getElementById("comment").value);
-      const res = await fetch(\`\${apiUrl}?\${params.toString()}\`);
+      const res = await fetch(`${apiUrl}?${params.toString()}`);
       const txt = await res.text();
       if (txt === "SUBMIT_OK") {
         alert("Result submitted successfully!");
