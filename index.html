@@ -179,7 +179,7 @@
         a.localeCompare(b, "en", { sensitivity: "base" })
       ));
       const dateSelect = document.getElementById("dateFilter");
-      dateSelect.innerHTML = "";
+      dateSelect.innerHTML = '<option value="">All</option>';
       dates.forEach(d => {
         const opt = document.createElement("option");
         opt.value = d;
@@ -204,35 +204,39 @@
       const results = document.getElementById("results");
       results.innerHTML = "";
 
-      if (!scheduleData[date]) return;
+      const dateList = date ? [date] : Object.keys(scheduleData);
 
-      scheduleData[date].forEach((match, idx) => {
-        if (!match) return;
-        const index = match.rowIndex ?? idx;
-        const matchTeam = match.team,
-              matchOpponent = match.opponent,
-              duty = match.dutyTeam;
-        if (team && team !== matchTeam && team !== matchOpponent && team !== duty) return;
-        if (division && match.division !== division) return;
-        if (court && match.location !== court) return;
+      dateList.forEach(d => {
+        if (!scheduleData[d]) return;
 
-        const card = document.createElement("div");
-        card.className = "card";
-        const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
-        card.innerHTML = `
-          <div class="team">${teamHTML}</div>
-          <div class="time">Time: ${match.time}</div>
-          <div class="location">Court: ${match.location}</div>
-          <div class="duty">Duty: ${match.dutyTeam}</div>
-        `;
+        scheduleData[d].forEach((match, idx) => {
+          if (!match) return;
+          const index = match.rowIndex ?? idx;
+          const matchTeam = match.team,
+                matchOpponent = match.opponent,
+                duty = match.dutyTeam;
+          if (team && team !== matchTeam && team !== matchOpponent && team !== duty) return;
+          if (division && match.division !== division) return;
+          if (court && match.location !== court) return;
 
-        if (match.allowResult) {
-          const btn = document.createElement("button");
-          btn.textContent = "Enter Result (Referee use only)";
-          btn.onclick = () => promptPasscode(date, index, match.team, match.opponent);
-          card.appendChild(btn);
-        }
-        results.appendChild(card);
+          const card = document.createElement("div");
+          card.className = "card";
+          const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
+          card.innerHTML = `
+            <div class="team">${teamHTML}</div>
+            <div class="time">Time: ${match.time}</div>
+            <div class="location">Court: ${match.location}</div>
+            <div class="duty">Duty: ${match.dutyTeam}</div>
+          `;
+
+          if (match.allowResult) {
+            const btn = document.createElement("button");
+            btn.textContent = "Enter Result (Referee use only)";
+            btn.onclick = () => promptPasscode(d, index, match.team, match.opponent);
+            card.appendChild(btn);
+          }
+          results.appendChild(card);
+        });
       });
     }
 
