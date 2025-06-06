@@ -139,7 +139,9 @@
       for (const date in json.schedule) {
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
-          scheduleData[date] = matches.filter(Boolean);
+          scheduleData[date] = matches
+            .map((m, i) => (m ? { ...m, rowIndex: i } : null))
+            .filter(Boolean);
         }
       }
       defaultDate = json.defaultDate;
@@ -204,7 +206,9 @@
 
       if (!scheduleData[date]) return;
 
-      scheduleData[date].forEach((match, index) => {
+      scheduleData[date].forEach((match, idx) => {
+        if (!match) return;
+        const index = match.rowIndex ?? idx;
         const matchTeam = match.team,
               matchOpponent = match.opponent,
               duty = match.dutyTeam;
