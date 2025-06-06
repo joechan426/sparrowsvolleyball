@@ -169,9 +169,13 @@
         });
       };
 
-      setOptions("teamFilter", [...teams]);
+      setOptions("teamFilter", [...teams].sort((a, b) =>
+        a.localeCompare(b, "en", { sensitivity: "base" })
+      ));
       setOptions("divisionFilter", [...divisions]);
-      setOptions("courtFilter", [...courts]);
+      setOptions("courtFilter", [...courts].sort((a, b) =>
+        a.localeCompare(b, "en", { sensitivity: "base" })
+      ));
       const dateSelect = document.getElementById("dateFilter");
       dateSelect.innerHTML = "";
       dates.forEach(d => {
