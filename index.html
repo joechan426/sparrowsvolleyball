@@ -143,6 +143,15 @@
       margin: 0 2px;
       background: #e8f5e9;
     }
+    .division {
+      display: inline-block;
+      background: #e0e0e0;
+      color: #333;
+      padding: 2px 8px;
+      border-radius: 16px;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -287,6 +296,7 @@
           const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
           card.innerHTML = `
             <div class="team">${teamHTML}</div>
+            <div class="division">${match.division}</div>
             <div class="time">⏰ Time: ${match.time}</div>
             <div class="location">🏟️ Court: ${match.location}</div>
             <div class="duty">🛠️ Duty: ${match.dutyTeam}</div>
