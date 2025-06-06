@@ -246,13 +246,18 @@
           <p>Enter passcode:</p>
           <input id="passcodeInput" type="tel" inputmode="numeric" pattern="[0-9]*" />
           <div class="popup-buttons">
-            <button onclick="verifyPasscode('${date}', ${index}, '${team}', '${opponent}')">Submit</button>
-            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
+            <button id="passSubmit">Submit</button>
+            <button id="passCancel">Cancel</button>
           </div>
         </div>
       `;
       document.body.appendChild(overlay);
       document.body.appendChild(popup);
+      popup.querySelector("#passSubmit").addEventListener("click", () => verifyPasscode(date, index, team, opponent));
+      popup.querySelector("#passCancel").addEventListener("click", () => {
+        document.body.removeChild(popup);
+        document.body.removeChild(overlay);
+      });
       document.getElementById("passcodeInput").focus();
     }
 
