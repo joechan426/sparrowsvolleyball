@@ -254,7 +254,7 @@
 
     async function verifyPasscode(date, index, team, opponent) {
       const input = document.getElementById("passcodeInput").value;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index + 1}&passcode=${input}`;
+      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
       const res = await fetch(url);
       const txt = await res.text();
       document.querySelector(".popup").remove();
@@ -307,7 +307,7 @@
     }
 
     async function submitScores(date, index) {
-      const params = new URLSearchParams({ action: "submitScores", date, index: index + 1 });
+      const params = new URLSearchParams({ action: "submitScores", date, index });
       for (let i = 1; i <= 5; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
