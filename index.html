@@ -1,6 +1,320 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<!-- Truncated content due to space limitation -->
-<!-- Please assume the same final version generated previously -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Volleyball Schedule</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      background: #fff;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    p.description {
+      margin-top: 0;
+      color: #666;
+      font-size: 14px;
+    }
+    .filters {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    select, button {
+      padding: 8px;
+      font-size: 16px;
+    }
+    .card {
+      border: 1px solid #ccc;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      background: #f9f9f9;
+    }
+    .team {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .time, .location, .duty {
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .popup, .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .overlay {
+      background: rgba(0,0,0,0.3);
+      z-index: 100;
+    }
+    .popup {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 101;
+    }
+    .popup-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .popup-content input[type="tel"],
+    .popup-content input[type="text"] {
+      width: 80px;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .popup-content textarea {
+      width: 100%;
+      height: 60px;
+      margin-top: 10px;
+    }
+    .set-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .popup-buttons {
+      margin-top: 10px;
+      text-align: right;
+    }
+    .popup-buttons button {
+      margin-left: 10px;
+    }
+    .label-column {
+      width: 80px;
+    }
+    .score-column {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .team-color {
+      display: inline-block;
+      padding: 2px 5px;
+      border-radius: 4px;
+      margin: 0 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Volleyball Schedule</h1>
+  <p class="description">Thank you so much for helping our league run smoothly</p>
+  <div class="filters">
+    <select id="teamFilter"></select>
+    <select id="divisionFilter"></select>
+    <select id="courtFilter"></select>
+    <select id="dateFilter"></select>
+    <button onclick="resetFilters()">Reset</button>
+  </div>
+  <div id="results"></div>
+
+  <script>
+    let scheduleData = {};
+    let defaultDate = "";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbz2-n_rnzvnLSlVT7jAZaMSlN9GWnbqOvpytDfbN-K2nWk2GjVYQIQXcHapwN73L5Y/exec";
+
+    async function fetchSchedule() {
+      const res = await fetch(apiUrl);
+      const json = await res.json();
+      scheduleData = json.schedule;
+      defaultDate = json.defaultDate;
+      populateFilters();
+      document.getElementById("dateFilter").value = defaultDate;
+      filterResults();
+    }
+
+    function populateFilters() {
+      const teams = new Set(), divisions = new Set(), courts = new Set(), dates = [];
+
+      for (const date in scheduleData) {
+        dates.push(date);
+        for (const match of scheduleData[date]) {
+          teams.add(match.team);
+          teams.add(match.opponent);
+          divisions.add(match.division);
+          courts.add(match.location);
+        }
+      }
+
+      const setOptions = (id, items) => {
+        const el = document.getElementById(id);
+        el.innerHTML = '<option value="">All</option>';
+        [...items].forEach(item => {
+          el.innerHTML += `<option value="${item}">${item}</option>`;
+        });
+      };
+
+      setOptions("teamFilter", [...teams]);
+      setOptions("divisionFilter", [...divisions]);
+      setOptions("courtFilter", [...courts]);
+      const dateSelect = document.getElementById("dateFilter");
+      dateSelect.innerHTML = "";
+      dates.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        dateSelect.appendChild(opt);
+      });
+    }
+
+    function resetFilters() {
+      document.getElementById("teamFilter").value = "";
+      document.getElementById("divisionFilter").value = "";
+      document.getElementById("courtFilter").value = "";
+      document.getElementById("dateFilter").value = defaultDate;
+      filterResults();
+    }
+
+    function filterResults() {
+      const team = document.getElementById("teamFilter").value;
+      const division = document.getElementById("divisionFilter").value;
+      const court = document.getElementById("courtFilter").value;
+      const date = document.getElementById("dateFilter").value;
+      const results = document.getElementById("results");
+      results.innerHTML = "";
+
+      if (!scheduleData[date]) return;
+
+      scheduleData[date].forEach((match, index) => {
+        const matchTeam = match.team, opponent = match.opponent, duty = match.dutyTeam;
+        if (team && team !== matchTeam && team !== opponent && team !== duty) return;
+        if (division && match.division !== division) return;
+        if (court && match.location !== court) return;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
+        card.innerHTML = `
+          <div class="team">${teamHTML}</div>
+          <div class="time">${match.time}</div>
+          <div class="location">Court: ${match.location}</div>
+          <div class="duty">Duty: ${match.dutyTeam}</div>
+        `;
+
+        if (match.allowResult) {
+          const btn = document.createElement("button");
+          btn.textContent = "Enter Result (Referee use only)";
+          btn.onclick = () => promptPasscode(date, index, match.team, match.opponent);
+          card.appendChild(btn);
+        }
+        results.appendChild(card);
+      });
+    }
+
+    function promptPasscode(date, index, teamA, teamB) {
+      const overlay = document.createElement("div");
+      overlay.className = "overlay";
+      const popup = document.createElement("div");
+      popup.className = "popup";
+      popup.innerHTML = `
+        <div class="popup-content">
+          <p>Enter passcode:</p>
+          <input id="passcodeInput" type="tel" inputmode="numeric" pattern="[0-9]*" />
+          <div class="popup-buttons">
+            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
+            <button onclick="verifyPasscode('${date}', ${index}, '${teamA}', '${teamB}')">Submit</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+    }
+
+    async function verifyPasscode(date, index, teamA, teamB) {
+      const input = document.getElementById("passcodeInput").value;
+      const url = \`\${apiUrl}?action=validate&date=\${encodeURIComponent(date)}&index=\${index}&passcode=\${input}\`;
+      const res = await fetch(url);
+      const txt = await res.text();
+      document.querySelector(".popup").remove();
+      document.querySelector(".overlay").remove();
+      if (txt === "PASS_OK") {
+        openScorePopup(date, index, teamA, teamB);
+      } else {
+        alert("Passcode Error");
+      }
+    }
+
+    function openScorePopup(date, index, teamA, teamB) {
+      const overlay = document.createElement("div");
+      overlay.className = "overlay";
+      const popup = document.createElement("div");
+      popup.className = "popup";
+
+      const setLabels = ["1st", "2nd", "3rd", "4th", "5th"];
+      let inputFields = setLabels.map((label, i) => `
+        <div class="set-row">
+          <span class="label-column">${label} Set</span>
+          <input type="tel" inputmode="numeric" pattern="[0-9]*" id="a${i+1}" />
+          <input type="tel" inputmode="numeric" pattern="[0-9]*" id="b${i+1}" />
+        </div>`).join("");
+
+      popup.innerHTML = `
+        <div class="popup-content">
+          <h3>${teamA} vs ${teamB}</h3>
+          ${inputFields}
+          <div>
+            <label>Comment:</label>
+            <textarea id="comment" maxlength="255"></textarea>
+            <small>Max 255 characters</small>
+          </div>
+          <div class="popup-buttons">
+            <button onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);document.body.removeChild(document.querySelector('.overlay'));">Cancel</button>
+            <button onclick="submitScores('${date}', ${index})">Submit</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+    }
+
+    async function submitScores(date, index) {
+      const params = new URLSearchParams({ action: "submitScores", date, index });
+      for (let i = 1; i <= 5; i++) {
+        params.append("a" + i, document.getElementById("a" + i).value);
+        params.append("b" + i, document.getElementById("b" + i).value);
+      }
+      params.append("comment", document.getElementById("comment").value);
+      const res = await fetch(\`\${apiUrl}?\${params.toString()}\`);
+      const txt = await res.text();
+      if (txt === "SUBMIT_OK") {
+        alert("Result submitted successfully!");
+        location.reload();
+      } else {
+        alert("Error submitting result.");
+      }
+    }
+
+    document.getElementById("teamFilter").addEventListener("change", () => {
+      document.getElementById("divisionFilter").value = "";
+      document.getElementById("courtFilter").value = "";
+      filterResults();
+    });
+    document.getElementById("divisionFilter").addEventListener("change", () => {
+      document.getElementById("teamFilter").value = "";
+      document.getElementById("courtFilter").value = "";
+      filterResults();
+    });
+    document.getElementById("courtFilter").addEventListener("change", () => {
+      document.getElementById("teamFilter").value = "";
+      document.getElementById("divisionFilter").value = "";
+      filterResults();
+    });
+    document.getElementById("dateFilter").addEventListener("change", filterResults);
+    window.addEventListener("DOMContentLoaded", fetchSchedule);
+  </script>
+</body>
 </html>
