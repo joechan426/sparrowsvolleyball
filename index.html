@@ -142,6 +142,8 @@
       padding: 2px 5px;
       border-radius: 4px;
       margin: 0 2px;
+      color: #006400;
+      background: #e8f5e9;
     }
     .division {
       display: inline-block;
@@ -178,6 +180,9 @@
       margin-bottom: 15px;
       display: flex;
       gap: 10px;
+    }
+    .division-tabs button {
+      color: #fff;
     }
     .division-tabs button.active {
       background: #008040;
@@ -407,7 +412,6 @@
         const btn = document.createElement('button');
         btn.textContent = div;
         btn.dataset.division = div;
-        btn.style.color = getDivisionColor(div);
         if (idx === 0) btn.classList.add('active');
         btn.onclick = () => showDivision(div);
         tabs.appendChild(btn);
@@ -552,9 +556,7 @@
 
           const card = document.createElement("div");
           card.className = "card";
-          const teamColorA = getTeamColor(match.team);
-          const teamColorB = getTeamColor(match.opponent);
-          const teamHTML = `<span class="team-color" style="color:${teamColorA}">${match.team}</span> vs <span class="team-color" style="color:${teamColorB}">${match.opponent}</span>`;
+          const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
           card.innerHTML = `
             <div class="team">${teamHTML}</div>
             <div class="division" style="color:${getDivisionColor(match.division)}">${match.division}</div>
