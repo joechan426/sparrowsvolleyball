@@ -143,6 +143,7 @@
       border-radius: 4px;
       margin: 0 2px;
       background: #e8f5e9;
+      color: #000;
     }
     .division {
       display: inline-block;
@@ -238,6 +239,12 @@
   <script>
     let scheduleData = {};
     let defaultDate = "";
+    let teamColorMap = {};
+    const colorPalette = [
+      '#ff5722', '#4caf50', '#2196f3', '#ff9800', '#9c27b0',
+      '#e91e63', '#3f51b5', '#009688', '#795548', '#607d8b',
+      '#673ab7', '#00bcd4'
+    ];
     const apiUrl = "https://script.google.com/macros/s/AKfycbwwqw-OB2Vl8Lap6UCumyhUTnJahAFkPkkBbCCg-7t_tJthI7uMbrYxc6sRiuic-3s/exec";
     function showTab(tab) {
       document.getElementById("scheduleSection").style.display = tab === "schedule" ? "block" : "none";
@@ -260,6 +267,39 @@
     function hideLoading() {
       const overlay = document.querySelector(".loading-overlay");
       if (overlay) overlay.remove();
+    }
+
+    function assignTeamColors() {
+      teamColorMap = {};
+      const allTeams = new Set();
+      for (const date in scheduleData) {
+        (scheduleData[date] || []).forEach(m => {
+          if (m.team) allTeams.add(m.team);
+          if (m.opponent) allTeams.add(m.opponent);
+        });
+      }
+      const schedule = liveResults.schedule || {};
+      for (const date in schedule) {
+        (schedule[date] || []).forEach(m => {
+          if (m.team) allTeams.add(m.team);
+          if (m.opponent) allTeams.add(m.opponent);
+        });
+      }
+      for (const div in liveResults.divisions || {}) {
+        (liveResults.divisions[div].standings || []).forEach(s => allTeams.add(s.team));
+      }
+      let idx = 0;
+      allTeams.forEach(t => {
+        if (!t) return;
+        const key = normalizeName(t);
+        teamColorMap[key] = colorPalette[idx % colorPalette.length];
+        idx++;
+      });
+    }
+
+    function getTeamColor(team) {
+      const key = normalizeName(team);
+      return teamColorMap[key] || '#e8f5e9';
     }
 
     let teamNameMap = {};
@@ -339,6 +379,7 @@
       populateFilters();
       document.getElementById("dateFilter").value = defaultDate;
       filterResults();
+      assignTeamColors();
     }
 
     let liveResults = {};
@@ -363,6 +404,7 @@
         btn.onclick = () => showDivision(div);
         tabs.appendChild(btn);
       });
+      assignTeamColors();
       showDivision(divisions[0]);
     }
 
@@ -371,7 +413,7 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
-      let html = '<div class="card ranking-card"><table class="ranking-table"><thead><tr>' +
+      let html = '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
         '<th>PW</th><th>PL</th><th>Pts%</th>' +
@@ -383,12 +425,13 @@
           (row.setsWon / (row.setsWon + row.setsLost) * 100).toFixed(1) : '0';
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
-        html += `<tr><td>${i + 1}</td><td>${displayName}</td><td>${row.wins}</td>` +
+        const color = getTeamColor(displayName);
+        html += `<tr><td>${i + 1}</td><td><span class="team-color" style="background:${color}">${displayName}</span></td><td>${row.wins}</td>` +
           `<td>${row.losses}</td><td>${row.draws}</td>` +
           `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
       });
-      html += '</tbody></table></div>';
+      html += '</tbody></table>';
 
       const schedule = liveResults.schedule || {};
       for (const date in schedule) {
@@ -411,7 +454,9 @@
               setText.push(`${sa ?? '-'}-${sb ?? '-'}`);
             }
           }
-          html += `<div class="match-result"><span class="team-color">${match.team}</span> ${swA}-${swB} <span class="team-color">${match.opponent}</span> (${setText.join(', ')})</div>`;
+        const colorA = getTeamColor(match.team);
+        const colorB = getTeamColor(match.opponent);
+        html += `<div class="match-result"><span class="team-color" style="background:${colorA}">${match.team}</span> ${swA}-${swB} <span class="team-color" style="background:${colorB}">${match.opponent}</span> (${setText.join(', ')})</div>`;
         });
         html += '</div>';
       }
@@ -499,7 +544,9 @@
 
           const card = document.createElement("div");
           card.className = "card";
-          const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
+          const teamColorA = getTeamColor(match.team);
+          const teamColorB = getTeamColor(match.opponent);
+          const teamHTML = `<span class="team-color" style="background:${teamColorA}">${match.team}</span> vs <span class="team-color" style="background:${teamColorB}">${match.opponent}</span>`;
           card.innerHTML = `
             <div class="team">${teamHTML}</div>
             <div class="division">${match.division}</div>
