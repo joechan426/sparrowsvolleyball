@@ -279,7 +279,7 @@
 
     let liveResults = {};
     async function fetchResults() {
-      const res = await fetch('content/results.json', { cache: 'no-store' });
+      const res = await fetch(`${apiUrl}?action=getResults`, { cache: 'no-store' });
       liveResults = await res.json();
       const tabs = document.getElementById('divisionTabs');
       tabs.innerHTML = '';

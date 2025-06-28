@@ -21,3 +21,10 @@ Then open `http://localhost:8000` in your browser to view `index.html`.
 
 The CMS commits the new file under `content/matches/` so the schedule can be updated automatically.
 
+## Live Results
+
+Live standings and score submissions are also driven by the same Google Sheets
+document used for the schedule. The site calls a Google Apps Script (`apiUrl` in
+`index.html`) to fetch the latest results and to record score updates. This
+means no manual updates to `content/results.json` are required.
+
