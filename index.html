@@ -363,7 +363,38 @@
       for (const div in divStats) {
         const teams = divStats[div];
         const arr = Object.keys(teams).map(t => ({ team: t, ...teams[t] }));
-        arr.sort((a, b) => b.wins - a.wins || b.setsWon - a.setsWon || b.pointsWon - a.pointsWon);
+        arr.forEach(team => {
+          team.setPct = team.setsWon + team.setsLost > 0
+            ? team.setsWon / (team.setsWon + team.setsLost)
+            : 0;
+          team.pointsPct = team.pointsWon + team.pointsLost > 0
+            ? team.pointsWon / (team.pointsWon + team.pointsLost)
+            : 0;
+        });
+        arr.sort((a, b) =>
+          b.wins - a.wins ||
+          b.draws - a.draws ||
+          b.setPct - a.setPct ||
+          b.pointsPct - a.pointsPct
+        );
+        let rank = 1;
+        arr.forEach((team, i) => {
+          if (i === 0) {
+            team.rank = 1;
+          } else {
+            const prev = arr[i - 1];
+            if (
+              team.wins === prev.wins &&
+              team.draws === prev.draws &&
+              team.setPct === prev.setPct &&
+              team.pointsPct === prev.pointsPct
+            ) {
+              team.rank = prev.rank;
+            } else {
+              team.rank = i + 1;
+            }
+          }
+        });
         result[div] = { standings: arr };
       }
       return result;
@@ -438,7 +469,7 @@
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
         const color = getTeamColor(displayName);
-        html += `<tr><td>${i + 1}</td><td><span class="team-color" style="color:${color}">${displayName}</span></td><td>${row.wins}</td>` +
+        html += `<tr><td>${row.rank}</td><td><span class="team-color" style="color:${color}">${displayName}</span></td><td>${row.wins}</td>` +
           `<td>${row.losses}</td><td>${row.draws}</td>` +
           `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
