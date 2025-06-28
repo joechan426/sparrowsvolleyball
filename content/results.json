@@ -1,0 +1,24 @@
+{
+  "divisions": {
+    "Division A": {
+      "standings": [
+        {"team": "Team Alpha", "wins": 2, "losses": 1, "draws": 0, "setsWon": 7, "setsLost": 3, "pointsWon": 210, "pointsLost": 190},
+        {"team": "Team Beta", "wins": 1, "losses": 2, "draws": 0, "setsWon": 5, "setsLost": 6, "pointsWon": 195, "pointsLost": 205}
+      ],
+      "matches": [
+        "Team Alpha def. Team Beta 2-1 (25-20, 23-25, 15-10)",
+        "Team Beta lost to Team Alpha 0-2 (18-25, 21-25)"
+      ]
+    },
+    "Division B": {
+      "standings": [
+        {"team": "Team Gamma", "wins": 3, "losses": 0, "draws": 0, "setsWon": 6, "setsLost": 1, "pointsWon": 180, "pointsLost": 150},
+        {"team": "Team Delta", "wins": 0, "losses": 3, "draws": 0, "setsWon": 1, "setsLost": 6, "pointsWon": 150, "pointsLost": 180}
+      ],
+      "matches": [
+        "Team Gamma def. Team Delta 2-0 (25-18, 25-22)",
+        "Team Gamma def. Team Delta 2-1 (22-25, 25-19, 15-12)"
+      ]
+    }
+  }
+}
