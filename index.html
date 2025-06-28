@@ -347,7 +347,14 @@
               tB.pointsWon += sb;
             }
             if (!isNaN(sa) && !isNaN(sb)) {
-              if (sa > sb) swA++; else if (sb > sa) swB++;
+              let count = true;
+              if (i === 2) {
+                const diff = Math.abs(sa - sb);
+                if (!((sa >= 8 || sb >= 8) && diff >= 2)) count = false;
+              }
+              if (count) {
+                if (sa > sb) swA++; else if (sb > sa) swB++;
+              }
             }
           }
           tA.setsWon += swA; tA.setsLost += swB;
@@ -491,7 +498,14 @@
             const sa = aScores[i];
             const sb = bScores[i];
             if (sa !== undefined && sb !== undefined) {
-              if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
+              let count = true;
+              if (i === 2) {
+                const diff = Math.abs(sa - sb);
+                if (!((sa >= 8 || sb >= 8) && diff >= 2)) count = false;
+              }
+              if (count) {
+                if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
+              }
             }
             if (sa !== undefined || sb !== undefined) {
               setText.push(`${sa ?? '-'}-${sb ?? '-'}`);
