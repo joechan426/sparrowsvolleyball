@@ -771,9 +771,10 @@
     });
     document.getElementById("dateFilter").addEventListener("change", filterResults);
     window.addEventListener("DOMContentLoaded", async () => {
+      showLoading("Data retrieving");
       showTab("schedule");
-      await fetchSchedule();
-      await fetchResults();
+      await Promise.all([fetchSchedule(), fetchResults()]);
+      hideLoading();
     });
   </script>
 </body>
