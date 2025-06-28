@@ -320,8 +320,29 @@
       });
       html += '</tbody></table>';
 
+      const schedule = liveResults.schedule || {};
       html += '<div class="match-results">';
-      data.matches.forEach(m => { html += `<div class="match-result">${m}</div>`; });
+      for (const date in schedule) {
+        (schedule[date] || []).forEach(match => {
+          if (match.division !== div) return;
+          const aScores = (match.scores && match.scores.a) || [];
+          const bScores = (match.scores && match.scores.b) || [];
+          const len = Math.max(aScores.length, bScores.length);
+          let swA = 0, swB = 0;
+          const setText = [];
+          for (let i = 0; i < len; i++) {
+            const sa = aScores[i];
+            const sb = bScores[i];
+            if (sa !== undefined && sb !== undefined) {
+              if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
+            }
+            if (sa !== undefined || sb !== undefined) {
+              setText.push(`${sa ?? '-'}-${sb ?? '-'}`);
+            }
+          }
+          html += `<div class="match-result">${date}: ${match.team} ${swA}-${swB} ${match.opponent} (${setText.join(', ')})</div>`;
+        });
+      }
       html += '</div>';
 
       container.innerHTML = html;
