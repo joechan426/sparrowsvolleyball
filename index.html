@@ -264,140 +264,6 @@
       populateFilters();
       document.getElementById("dateFilter").value = defaultDate;
       filterResults();
-      computeLiveResults();
-      setupLiveResults();
-    }
-
-    let liveResults = { divisions: {} };
-
-    function extractScores(match) {
-      if (match.scores && Array.isArray(match.scores.a) && Array.isArray(match.scores.b)) {
-        return [match.scores.a, match.scores.b];
-      }
-      const a = [], b = [];
-      for (let i = 1; i <= 5; i++) {
-        const sa = match["a" + i];
-        const sb = match["b" + i];
-        if (sa !== undefined || sb !== undefined) {
-          a.push(sa);
-          b.push(sb);
-        }
-      }
-      return [a, b];
-    }
-
-    function computeLiveResults() {
-      liveResults = { divisions: {} };
-      const dates = Object.keys(scheduleData).sort();
-      dates.forEach(d => {
-        (scheduleData[d] || []).forEach(match => {
-          const div = match.division || 'Unknown';
-          if (!liveResults.divisions[div]) {
-            liveResults.divisions[div] = { teams: {}, matches: [] };
-          }
-          const division = liveResults.divisions[div];
-
-          [match.team, match.opponent].forEach(t => {
-            if (!division.teams[t]) {
-              division.teams[t] = { team: t, wins: 0, losses: 0, draws: 0, setsWon: 0, setsLost: 0, pointsWon: 0, pointsLost: 0 };
-            }
-          });
-
-          const [as, bs] = extractScores(match);
-          if (as.length || bs.length) {
-            let swA = 0, swB = 0, pwA = 0, pwB = 0;
-            const setText = [];
-            const len = Math.max(as.length, bs.length);
-            for (let i = 0; i < len; i++) {
-              const va = parseInt(as[i]);
-              const vb = parseInt(bs[i]);
-              if (!isNaN(va)) pwA += va;
-              if (!isNaN(vb)) pwB += vb;
-              if (!isNaN(va) && !isNaN(vb)) {
-                if (va > vb) swA++; else if (vb > va) swB++;
-              }
-              if (!isNaN(va) || !isNaN(vb)) {
-                setText.push(`${isNaN(va)?'-':va}-${isNaN(vb)?'-':vb}`);
-              }
-            }
-
-            division.matches.push(`${match.team} ${swA}-${swB} ${match.opponent} (${setText.join(', ')})`);
-
-            const tStats = division.teams[match.team];
-            const oStats = division.teams[match.opponent];
-            tStats.setsWon += swA; tStats.setsLost += swB;
-            oStats.setsWon += swB; oStats.setsLost += swA;
-            tStats.pointsWon += pwA; tStats.pointsLost += pwB;
-            oStats.pointsWon += pwB; oStats.pointsLost += pwA;
-            if (swA > swB) { tStats.wins++; oStats.losses++; }
-            else if (swA < swB) { tStats.losses++; oStats.wins++; }
-            else { tStats.draws++; oStats.draws++; }
-          }
-        });
-      });
-
-      for (const div in liveResults.divisions) {
-        const division = liveResults.divisions[div];
-        division.standings = Object.values(division.teams).sort((a, b) => {
-          if (b.wins !== a.wins) return b.wins - a.wins;
-          const aSetPct = a.setsWon + a.setsLost ? a.setsWon / (a.setsWon + a.setsLost) : 0;
-          const bSetPct = b.setsWon + b.setsLost ? b.setsWon / (b.setsWon + b.setsLost) : 0;
-          if (bSetPct !== aSetPct) return bSetPct - aSetPct;
-          const aPtsPct = a.pointsWon + a.pointsLost ? a.pointsWon / (a.pointsWon + a.pointsLost) : 0;
-          const bPtsPct = b.pointsWon + b.pointsLost ? b.pointsWon / (b.pointsWon + b.pointsLost) : 0;
-          return bPtsPct - aPtsPct;
-        });
-      }
-    }
-
-    function setupLiveResults() {
-      const tabs = document.getElementById('divisionTabs');
-      tabs.innerHTML = '';
-      const divisions = Object.keys(liveResults.divisions);
-      if (!divisions.length) return;
-      divisions.forEach((div, idx) => {
-        const btn = document.createElement('button');
-        btn.textContent = div;
-        btn.dataset.division = div;
-        if (idx === 0) btn.classList.add('active');
-        btn.onclick = () => showDivision(div);
-        tabs.appendChild(btn);
-      });
-      showDivision(divisions[0]);
-    }
-
-    function showDivision(div) {
-      const data = (liveResults.divisions || {})[div];
-      const container = document.getElementById('divisionContent');
-      if (!data) { container.innerHTML = ''; return; }
-
-      let html = '<table class="ranking-table"><thead><tr>' +
-        '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
-        '<th>SW</th><th>SL</th><th>Set%</th>' +
-        '<th>PW</th><th>PL</th><th>Pts%</th>' +
-        '</tr></thead><tbody>';
-      data.standings.forEach((row, i) => {
-        const setPct = row.setsWon + row.setsLost > 0 ?
-          (row.setsWon / (row.setsWon + row.setsLost) * 100).toFixed(1) : '0';
-        const scorePct = row.pointsWon + row.pointsLost > 0 ?
-          (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
-        html += `<tr><td>${i + 1}</td><td>${row.team}</td><td>${row.wins}</td>` +
-          `<td>${row.losses}</td><td>${row.draws}</td>` +
-          `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
-          `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
-      });
-      html += '</tbody></table>';
-
-      html += '<div class="match-results">';
-      data.matches.forEach(m => { html += `<div class="match-result">${m}</div>`; });
-      html += '</div>';
-
-      container.innerHTML = html;
-
-      const tabs = document.getElementById('divisionTabs').children;
-      for (const btn of tabs) btn.classList.remove('active');
-      const activeBtn = document.querySelector(`#divisionTabs button[data-division="${div}"]`);
-      if (activeBtn) activeBtn.classList.add('active');
     }
 
     let liveResults = {};
@@ -714,6 +580,7 @@
     window.addEventListener("DOMContentLoaded", () => {
       showTab("schedule");
       fetchSchedule();
+      fetchResults();
     });
   </script>
 </body>
