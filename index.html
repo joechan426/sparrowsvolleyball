@@ -187,11 +187,25 @@
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 10px;
+      font-size: 14px;
     }
-    .ranking-table th, .ranking-table td {
+    .ranking-table th {
+      background: #006400;
+      color: #fff;
+      padding: 6px;
+    }
+    .ranking-table td {
       border: 1px solid #ccc;
       padding: 6px;
       text-align: center;
+    }
+    .match-day {
+      margin-bottom: 15px;
+    }
+    .date-header {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #006400;
     }
     .match-result {
       margin-bottom: 6px;
@@ -357,7 +371,7 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
-      let html = '<table class="ranking-table"><thead><tr>' +
+      let html = '<div class="card ranking-card"><table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
         '<th>PW</th><th>PL</th><th>Pts%</th>' +
@@ -374,13 +388,14 @@
           `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
       });
-      html += '</tbody></table>';
+      html += '</tbody></table></div>';
 
       const schedule = liveResults.schedule || {};
-      html += '<div class="match-results">';
       for (const date in schedule) {
-        (schedule[date] || []).forEach(match => {
-          if (match.division !== div) return;
+        const matches = (schedule[date] || []).filter(m => m.division === div);
+        if (!matches.length) continue;
+        html += `<div class="card match-day"><div class="date-header">${date}</div>`;
+        matches.forEach(match => {
           const aScores = (match.scores && match.scores.a) || [];
           const bScores = (match.scores && match.scores.b) || [];
           const len = Math.max(aScores.length, bScores.length);
@@ -396,10 +411,10 @@
               setText.push(`${sa ?? '-'}-${sb ?? '-'}`);
             }
           }
-          html += `<div class="match-result">${date}: ${match.team} ${swA}-${swB} ${match.opponent} (${setText.join(', ')})</div>`;
+          html += `<div class="match-result"><span class="team-color">${match.team}</span> ${swA}-${swB} <span class="team-color">${match.opponent}</span> (${setText.join(', ')})</div>`;
         });
+        html += '</div>';
       }
-      html += '</div>';
 
       container.innerHTML = html;
 
