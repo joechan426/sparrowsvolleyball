@@ -248,16 +248,27 @@
       if (overlay) overlay.remove();
     }
 
+    let teamNameMap = {};
+    function normalizeName(name) {
+      return (name || "").trim().toLowerCase();
+    }
+
     async function fetchSchedule() {
       const res = await fetch(apiUrl, { cache: "no-store" });
       const json = await res.json();
       scheduleData = {};
+      teamNameMap = {};
       for (const date in json.schedule) {
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
           scheduleData[date] = matches
             .map((m, i) => (m ? { ...m, rowIndex: i } : null))
             .filter(Boolean);
+          scheduleData[date].forEach(m => {
+            if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
+            if (m.opponent) teamNameMap[normalizeName(m.opponent)] = m.opponent;
+            if (m.dutyTeam) teamNameMap[normalizeName(m.dutyTeam)] = m.dutyTeam;
+          });
         }
       }
       defaultDate = json.defaultDate;
@@ -296,11 +307,13 @@
         '<th>PW</th><th>PL</th><th>Pts%</th>' +
         '</tr></thead><tbody>';
       data.standings.forEach((row, i) => {
+        const nameKey = normalizeName(row.team);
+        const displayName = teamNameMap[nameKey] || row.team;
         const setPct = row.setsWon + row.setsLost > 0 ?
           (row.setsWon / (row.setsWon + row.setsLost) * 100).toFixed(1) : '0';
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
-        html += `<tr><td>${i + 1}</td><td>${row.team}</td><td>${row.wins}</td>` +
+        html += `<tr><td>${i + 1}</td><td>${displayName}</td><td>${row.wins}</td>` +
           `<td>${row.losses}</td><td>${row.draws}</td>` +
           `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
@@ -577,10 +590,10 @@
       filterResults();
     });
     document.getElementById("dateFilter").addEventListener("change", filterResults);
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", async () => {
       showTab("schedule");
-      fetchSchedule();
-      fetchResults();
+      await fetchSchedule();
+      await fetchResults();
     });
   </script>
 </body>
