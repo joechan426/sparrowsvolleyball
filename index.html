@@ -142,8 +142,6 @@
       padding: 2px 5px;
       border-radius: 4px;
       margin: 0 2px;
-      background: #e8f5e9;
-      color: #000;
     }
     .division {
       display: inline-block;
@@ -240,6 +238,7 @@
     let scheduleData = {};
     let defaultDate = "";
     let teamColorMap = {};
+    let divisionColorMap = {};
     const colorPalette = [
       '#ff5722', '#4caf50', '#2196f3', '#ff9800', '#9c27b0',
       '#e91e63', '#3f51b5', '#009688', '#795548', '#607d8b',
@@ -271,6 +270,7 @@
 
     function assignTeamColors() {
       teamColorMap = {};
+      divisionColorMap = {};
       const allTeams = new Set();
       for (const date in scheduleData) {
         (scheduleData[date] || []).forEach(m => {
@@ -285,9 +285,12 @@
           if (m.opponent) allTeams.add(m.opponent);
         });
       }
-      for (const div in liveResults.divisions || {}) {
+      const divisions = Object.keys(liveResults.divisions || {});
+      divisions.forEach((div, i) => {
+        divisionColorMap[div] = colorPalette[i % colorPalette.length];
         (liveResults.divisions[div].standings || []).forEach(s => allTeams.add(s.team));
-      }
+      });
+
       let idx = 0;
       allTeams.forEach(t => {
         if (!t) return;
@@ -300,6 +303,10 @@
     function getTeamColor(team) {
       const key = normalizeName(team);
       return teamColorMap[key] || '#e8f5e9';
+    }
+
+    function getDivisionColor(div) {
+      return divisionColorMap[div] || '#333';
     }
 
     let teamNameMap = {};
@@ -400,6 +407,7 @@
         const btn = document.createElement('button');
         btn.textContent = div;
         btn.dataset.division = div;
+        btn.style.color = getDivisionColor(div);
         if (idx === 0) btn.classList.add('active');
         btn.onclick = () => showDivision(div);
         tabs.appendChild(btn);
@@ -426,7 +434,7 @@
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
         const color = getTeamColor(displayName);
-        html += `<tr><td>${i + 1}</td><td><span class="team-color" style="background:${color}">${displayName}</span></td><td>${row.wins}</td>` +
+        html += `<tr><td>${i + 1}</td><td><span class="team-color" style="color:${color}">${displayName}</span></td><td>${row.wins}</td>` +
           `<td>${row.losses}</td><td>${row.draws}</td>` +
           `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
@@ -456,7 +464,7 @@
           }
         const colorA = getTeamColor(match.team);
         const colorB = getTeamColor(match.opponent);
-        html += `<div class="match-result"><span class="team-color" style="background:${colorA}">${match.team}</span> ${swA}-${swB} <span class="team-color" style="background:${colorB}">${match.opponent}</span> (${setText.join(', ')})</div>`;
+        html += `<div class="match-result"><span class="team-color" style="color:${colorA}">${match.team}</span> ${swA}-${swB} <span class="team-color" style="color:${colorB}">${match.opponent}</span> (${setText.join(', ')})</div>`;
         });
         html += '</div>';
       }
@@ -546,10 +554,10 @@
           card.className = "card";
           const teamColorA = getTeamColor(match.team);
           const teamColorB = getTeamColor(match.opponent);
-          const teamHTML = `<span class="team-color" style="background:${teamColorA}">${match.team}</span> vs <span class="team-color" style="background:${teamColorB}">${match.opponent}</span>`;
+          const teamHTML = `<span class="team-color" style="color:${teamColorA}">${match.team}</span> vs <span class="team-color" style="color:${teamColorB}">${match.opponent}</span>`;
           card.innerHTML = `
             <div class="team">${teamHTML}</div>
-            <div class="division">${match.division}</div>
+            <div class="division" style="color:${getDivisionColor(match.division)}">${match.division}</div>
             <div class="time">⏰ Time: ${match.time}</div>
             <div class="location">🏟️ Court: ${match.location}</div>
             <div class="duty">🛠️ Duty: ${match.dutyTeam}</div>
