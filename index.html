@@ -167,11 +167,25 @@
       font-size: 20px;
       z-index: 200;
     }
+    .tab-bar {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 10px;
+    }
+    .tab-bar button.active {
+      background: #008040;
+    }
+
   </style>
 </head>
 <body>
   <h1>Sparrowsvolleyball Challenger League & SML Season 4 Schedule</h1>
   <p class="description">Version 1.1</p>
+  <div class='tab-bar'>
+    <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
+    <button id='liveTab' onclick="showTab('live')">Live results</button>
+  </div>
+  <div id="scheduleSection">
   <button style="margin-bottom: 10px;" onclick="location.href='https://docs.google.com/spreadsheets/d/e/2PACX-1vTga3n1OyQpIdKMYzJ5bnUqg2iuYLaQ4pLYdgwgbkXex8_aG7cPZLHs_XfKMn8-k_kuG6o4kXWf89Z0/pubhtml'">View Results</button>
   <div class="filters">
     <select id="teamFilter"></select>
@@ -181,11 +195,22 @@
     <button onclick="resetFilters()">Reset</button>
   </div>
   <div id="results"></div>
+  </div>
+  <div id="liveResultsSection" style="display:none;">
+    <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTga3n1OyQpIdKMYzJ5bnUqg2iuYLaQ4pLYdgwgbkXex8_aG7cPZLHs_XfKMn8-k_kuG6o4kXWf89Z0/pubhtml" style="width:100%;height:600px;border:0;"></iframe>
+  </div>
 
   <script>
     let scheduleData = {};
     let defaultDate = "";
     const apiUrl = "https://script.google.com/macros/s/AKfycbwwqw-OB2Vl8Lap6UCumyhUTnJahAFkPkkBbCCg-7t_tJthI7uMbrYxc6sRiuic-3s/exec";
+    function showTab(tab) {
+      document.getElementById("scheduleSection").style.display = tab === "schedule" ? "block" : "none";
+      document.getElementById("liveResultsSection").style.display = tab === "live" ? "block" : "none";
+      document.getElementById("scheduleTab").classList.toggle("active", tab === "schedule");
+      document.getElementById("liveTab").classList.toggle("active", tab === "live");
+    }
+
 
     function showLoading(message = "Loading...") {
       let overlay = document.querySelector(".loading-overlay");
@@ -478,7 +503,7 @@
       filterResults();
     });
     document.getElementById("dateFilter").addEventListener("change", filterResults);
-    window.addEventListener("DOMContentLoaded", fetchSchedule);
+    window.addEventListener("DOMContentLoaded", () => { showTab("schedule"); fetchSchedule(); });
   </script>
 </body>
 </html>
