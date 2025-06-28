@@ -326,42 +326,46 @@
           const { division, team, opponent, scores = {} } = match || {};
           const a = scores.a || [];
           const b = scores.b || [];
-          if (!a.length && !b.length) return;
           const div = division || 'Unknown';
           divStats[div] = divStats[div] || {};
+
           const tA = divStats[div][team] ||
             { wins: 0, losses: 0, draws: 0, setsWon: 0, setsLost: 0, pointsWon: 0, pointsLost: 0 };
           const tB = divStats[div][opponent] ||
             { wins: 0, losses: 0, draws: 0, setsWon: 0, setsLost: 0, pointsWon: 0, pointsLost: 0 };
-          let swA = 0, swB = 0;
-          const len = Math.max(a.length, b.length);
-          for (let i = 0; i < len; i++) {
-            const sa = parseInt(a[i]);
-            const sb = parseInt(b[i]);
-            if (!isNaN(sa)) {
-              tA.pointsWon += sa;
-              tB.pointsLost += sa;
-            }
-            if (!isNaN(sb)) {
-              tA.pointsLost += sb;
-              tB.pointsWon += sb;
-            }
-            if (!isNaN(sa) && !isNaN(sb)) {
-              let count = true;
-              if (i === 2) {
-                const diff = Math.abs(sa - sb);
-                if (!((sa >= 8 || sb >= 8) && diff >= 2)) count = false;
+
+          if (a.length || b.length) {
+            let swA = 0, swB = 0;
+            const len = Math.max(a.length, b.length);
+            for (let i = 0; i < len; i++) {
+              const sa = parseInt(a[i]);
+              const sb = parseInt(b[i]);
+              if (!isNaN(sa)) {
+                tA.pointsWon += sa;
+                tB.pointsLost += sa;
               }
-              if (count) {
-                if (sa > sb) swA++; else if (sb > sa) swB++;
+              if (!isNaN(sb)) {
+                tA.pointsLost += sb;
+                tB.pointsWon += sb;
+              }
+              if (!isNaN(sa) && !isNaN(sb)) {
+                let count = true;
+                if (i === 2) {
+                  const diff = Math.abs(sa - sb);
+                  if (!((sa >= 8 || sb >= 8) && diff >= 2)) count = false;
+                }
+                if (count) {
+                  if (sa > sb) swA++; else if (sb > sa) swB++;
+                }
               }
             }
+            tA.setsWon += swA; tA.setsLost += swB;
+            tB.setsWon += swB; tB.setsLost += swA;
+            if (swA > swB) { tA.wins++; tB.losses++; }
+            else if (swB > swA) { tB.wins++; tA.losses++; }
+            else { tA.draws++; tB.draws++; }
           }
-          tA.setsWon += swA; tA.setsLost += swB;
-          tB.setsWon += swB; tB.setsLost += swA;
-          if (swA > swB) { tA.wins++; tB.losses++; }
-          else if (swB > swA) { tB.wins++; tA.losses++; }
-          else { tA.draws++; tB.draws++; }
+
           divStats[div][team] = tA;
           divStats[div][opponent] = tB;
         });
