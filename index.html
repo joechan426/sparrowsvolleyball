@@ -448,6 +448,7 @@
     }
 
     let liveResults = {};
+    let currentDivision = null;
     async function fetchResults() {
       const res = await fetch(`${apiUrl}?action=getResults`, { cache: 'no-store' });
       liveResults = await res.json();
@@ -465,15 +466,17 @@
         const btn = document.createElement('button');
         btn.textContent = div;
         btn.dataset.division = div;
-        if (idx === 0) btn.classList.add('active');
+        if ((currentDivision ? div === currentDivision : idx === 0)) btn.classList.add('active');
         btn.onclick = () => showDivision(div);
         tabs.appendChild(btn);
       });
       assignTeamColors();
-      showDivision(divisions[0]);
+      if (!currentDivision) currentDivision = divisions[0];
+      showDivision(currentDivision);
     }
 
     function showDivision(div) {
+      currentDivision = div;
       const data = (liveResults.divisions || {})[div];
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
@@ -804,6 +807,11 @@
       showTab("schedule");
       await Promise.all([fetchSchedule(), fetchResults()]);
       hideLoading();
+      setInterval(() => {
+        if (document.getElementById('liveResultsSection').style.display !== 'none') {
+          fetchResults();
+        }
+      }, 30000);
     });
   </script>
 </body>
