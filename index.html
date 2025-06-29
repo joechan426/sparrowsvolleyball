@@ -219,6 +219,11 @@
       padding: 6px;
       text-align: center;
     }
+    .auto-renew-note {
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #666;
+    }
     .match-day {
       margin-bottom: 15px;
     }
@@ -486,7 +491,8 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
-      let html = '<table class="ranking-table"><thead><tr>' +
+      let html = '<div class="auto-renew-note">Table auto renew every 30 sec</div>' +
+        '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
         '<th>PW</th><th>PL</th><th>Pts%</th>' +
