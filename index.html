@@ -239,9 +239,18 @@
       margin-bottom: 6px;
     }
     .match-header {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      display: flex;
+      justify-content: center;
       align-items: center;
+      gap: 8px;
+    }
+    .match-header .team-color {
+      margin: 0 4px;
+    }
+    .match-header .set-count {
+      font-size: 20px;
+      font-weight: bold;
+      color: #0d47a1;
     }
     .set-table {
       width: 100%;
@@ -570,7 +579,7 @@
 
         html += `<div class="match-result">` +
           `<div class="match-header"><span class="team-color" data-team="${keyA}" style="color:${colorA}">${match.team}</span>` +
-          ` <span>${swA}-${swB}</span> ` +
+          ` <span class="set-count">${swA}-${swB}</span> ` +
           `<span class="team-color" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span></div>` +
           `<table class="set-table">${rows.join('')}</table>` +
           `</div>`;
