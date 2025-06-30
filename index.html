@@ -156,6 +156,9 @@
       color: #006400;
       background: #e8f5e9;
     }
+    .team-entry { cursor: pointer; }
+    .team-color.highlight { background: #fff59d; }
+    .ranking-table tr.highlight td { background: #fffde7; }
     .division {
       display: inline-block;
       background: #e0e0e0;
@@ -508,7 +511,7 @@
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
         const color = getTeamColor(displayName);
-        html += `<tr><td>${row.rank}</td><td><span class="team-color" style="color:${color}">${displayName}</span></td><td>${row.wins}</td>` +
+        html += `<tr data-team="${nameKey}"><td>${row.rank}</td><td><span class="team-color team-entry" data-team="${nameKey}" style="color:${color}">${displayName}</span></td><td>${row.wins}</td>` +
           `<td>${row.losses}</td><td>${row.draws}</td>` +
           `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
@@ -543,9 +546,11 @@
               setText.push(`${sa ?? '-'}-${sb ?? '-'}`);
             }
           }
+        const keyA = normalizeName(match.team);
+        const keyB = normalizeName(match.opponent);
         const colorA = getTeamColor(match.team);
         const colorB = getTeamColor(match.opponent);
-        html += `<div class="match-result"><span class="team-color" style="color:${colorA}">${match.team}</span> ${swA}-${swB} <span class="team-color" style="color:${colorB}">${match.opponent}</span> (${setText.join(', ')})</div>`;
+        html += `<div class="match-result"><span class="team-color" data-team="${keyA}" style="color:${colorA}">${match.team}</span> ${swA}-${swB} <span class="team-color" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span> (${setText.join(', ')})</div>`;
         });
         html += '</div>';
       }
@@ -556,6 +561,18 @@
       for (const btn of tabs) btn.classList.remove('active');
       const activeBtn = document.querySelector(`#divisionTabs button[data-division="${div}"]`);
       if (activeBtn) activeBtn.classList.add('active');
+
+      document.querySelectorAll('#divisionContent .team-entry').forEach(el => {
+        el.addEventListener('click', () => highlightTeam(el.dataset.team));
+      });
+    }
+
+    function highlightTeam(teamKey) {
+      document.querySelectorAll('.team-color.highlight').forEach(e => e.classList.remove('highlight'));
+      document.querySelectorAll('.ranking-table tr.highlight').forEach(e => e.classList.remove('highlight'));
+      document.querySelectorAll(`.team-color[data-team="${teamKey}"]`).forEach(e => e.classList.add('highlight'));
+      const row = document.querySelector(`.ranking-table tr[data-team="${teamKey}"]`);
+      if (row) row.classList.add('highlight');
     }
 
     function populateFilters() {
@@ -633,7 +650,7 @@
 
           const card = document.createElement("div");
           card.className = "card";
-          const teamHTML = `<span class="team-color">${match.team}</span> vs <span class="team-color">${match.opponent}</span>`;
+          const teamHTML = `<span class="team-color" data-team="${normalizeName(match.team)}">${match.team}</span> vs <span class="team-color" data-team="${normalizeName(match.opponent)}">${match.opponent}</span>`;
           card.innerHTML = `
             <div class="team">${teamHTML}</div>
             <div class="division" style="color:${getDivisionColor(match.division)}">${match.division}</div>
