@@ -227,7 +227,14 @@
       margin-bottom: 5px;
       color: #666;
     }
+    .match-days {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
     .match-day {
+      flex: 1 1 300px;
+      min-width: 280px;
       margin-bottom: 15px;
     }
     .date-header {
@@ -257,21 +264,20 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 4px;
+      table-layout: fixed;
     }
-    .set-table td {
+    .set-table th, .set-table td {
       padding: 2px 4px;
+      text-align: center;
     }
-    .set-label {
-      width: 40%;
+    .set-table th.set-num {
+      text-align: left;
       font-size: 14px;
-      text-align: right;
       color: #555;
     }
     .set-score {
-      width: 60%;
       font-size: 16px;
       font-weight: 600;
-      text-align: left;
     }
 
   </style>
@@ -551,6 +557,7 @@
       });
       html += '</tbody></table>';
 
+      html += '<div class="match-days">';
       const schedule = liveResults.schedule || {};
       for (const date in schedule) {
         const matches = (schedule[date] || []).filter(m => m.division === div);
@@ -580,25 +587,27 @@
         const colorB = getTeamColor(match.opponent);
 
         const setLabels = ['1st Set', '2nd Set', '3rd Set', '4th Set', '5th Set'];
-        const rows = [];
+        const header = [];
+        const scores = [];
         for (let i = 0; i < len; i++) {
           const sa = aScores[i];
           const sb = bScores[i];
           if (sa === undefined && sb === undefined) continue;
-          const label = setLabels[i] || `${i + 1}th Set`;
+          header.push(`<th class="set-num">${setLabels[i] || `${i + 1}th Set`}</th>`);
           const score = (sa === undefined || sb === undefined) ? '-' : `${sa}-${sb}`;
-          rows.push(`<tr><td class="set-label">${label}</td><td class="set-score">${score}</td></tr>`);
+          scores.push(`<td class="set-score">${score}</td>`);
         }
 
         html += `<div class="match-result">` +
           `<div class="match-header"><span class="team-color" data-team="${keyA}" style="color:${colorA}">${match.team}</span>` +
           ` <span class="set-count">${swA}-${swB}</span> ` +
           `<span class="team-color" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span></div>` +
-          `<table class="set-table">${rows.join('')}</table>` +
+          `<table class="set-table"><tr>${header.join('')}</tr><tr>${scores.join('')}</tr></table>` +
           `</div>`;
         });
         html += '</div>';
       }
+      html += '</div>';
 
       container.innerHTML = html;
 
