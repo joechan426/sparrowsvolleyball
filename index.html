@@ -250,9 +250,13 @@
       justify-content: center;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
-    .match-header .team-color {
+    .match-header .team-color,
+    .match-header .set-count {
       margin: 0 4px;
+      display: inline-flex;
+      align-items: center;
     }
     .match-header .set-count {
       font-size: 20px;
@@ -267,8 +271,9 @@
       table-layout: fixed;
     }
     .set-table th, .set-table td {
-      padding: 2px 4px;
+      padding: 1px 4px;
       text-align: center;
+      vertical-align: middle;
     }
     .set-table th.set-num {
       text-align: left;
