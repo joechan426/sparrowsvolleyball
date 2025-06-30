@@ -376,12 +376,10 @@
                 tB.pointsWon += sb;
               }
               if (!isNaN(sa) && !isNaN(sb)) {
-                let count = true;
-                if (i === 2) {
-                  const diff = Math.abs(sa - sb);
-                  if (!((sa >= 8 || sb >= 8) && diff >= 2)) count = false;
-                }
-                if (count) {
+                const diff = Math.abs(sa - sb);
+                const isLeague = /league/i.test(div);
+                const minPts = isLeague ? 12 : 8;
+                if ((sa >= minPts || sb >= minPts) && diff >= 2) {
                   if (sa > sb) swA++; else if (sb > sa) swB++;
                 }
               }
@@ -533,12 +531,10 @@
             const sa = aScores[i];
             const sb = bScores[i];
             if (sa !== undefined && sb !== undefined) {
-              let count = true;
-              if (i === 2) {
-                const diff = Math.abs(sa - sb);
-                if (!((sa >= 8 || sb >= 8) && diff >= 2)) count = false;
-              }
-              if (count) {
+              const diff = Math.abs(sa - sb);
+              const isLeague = /league/i.test(match.division);
+              const minPts = isLeague ? 12 : 8;
+              if ((sa >= minPts || sb >= minPts) && diff >= 2) {
                 if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
               }
             }
