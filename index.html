@@ -393,7 +393,9 @@
 
     function getTeamColor(team) {
       const key = normalizeName(team);
-      return teamColorMap[key] || '#e8f5e9';
+      // Use a dark fallback color when no mapping exists to ensure
+      // text remains readable on a white background
+      return teamColorMap[key] || '#333';
     }
 
     function getDivisionColor(div) {
@@ -909,13 +911,53 @@
       const court = document.getElementById("courtFilter").value;
       const date = document.getElementById("dateFilter").value;
 
-      const body = [];
-      const rowColors = [];
+      const headers = ['Date', 'Time', 'Team A', 'Team B', 'Court', 'Duty', 'Division'];
+      const allFiltersClear = !team && !division && !court && !date;
       const dateList = date
         ? [date]
         : Object.keys(scheduleData).sort((a, b) => new Date(a) - new Date(b));
 
-      dateList.forEach(d => {
+      const header = document.querySelector('h1').textContent;
+      const descEl = document.querySelector('p.description');
+      const desc = descEl ? descEl.innerText.replace(/\n+/g, ' ') : '';
+      const descLines = doc.splitTextToSize(desc, doc.internal.pageSize.getWidth() - 28);
+      const marginTop = 30 + descLines.length * 6;
+
+      const renderTable = (body, rowColors) => {
+        doc.autoTable({
+          head: [headers],
+          body,
+          margin: { top: marginTop },
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [0, 100, 0] },
+          rowPageBreak: 'avoid',
+          didDrawPage: (data) => {
+            doc.setFontSize(16);
+            doc.text(header, data.settings.margin.left, 15);
+            doc.setFontSize(10);
+            doc.text(descLines, data.settings.margin.left, 22);
+          },
+          didParseCell: (data) => {
+            if (data.section === 'body') {
+              const colors = rowColors[data.row.index] || {};
+              if (data.column.index === 2 && colors.team) {
+                data.cell.styles.textColor = colors.team;
+                if (team) data.cell.styles.fontStyle = 'bold';
+              } else if (data.column.index === 3 && colors.opponent) {
+                data.cell.styles.textColor = colors.opponent;
+                if (team) data.cell.styles.fontStyle = 'bold';
+              } else if (data.column.index === 5 && colors.duty) {
+                data.cell.styles.textColor = colors.duty;
+                if (team) data.cell.styles.fontStyle = 'bold';
+              }
+            }
+          }
+        });
+      };
+
+      const processDate = (d) => {
+        const body = [];
+        const rowColors = [];
         (scheduleData[d] || []).forEach(match => {
           if (team && team !== match.team && team !== match.opponent && team !== match.dutyTeam) return;
           if (division && match.division !== division) return;
@@ -939,49 +981,30 @@
               duty: team === match.dutyTeam ? hl : null
             });
           } else {
-            rowColors.push({
-              team: hexToRgb(getTeamColor(match.team)),
-              opponent: hexToRgb(getTeamColor(match.opponent)),
-              duty: hexToRgb(getTeamColor(match.dutyTeam))
-            });
+            // Use default text color when no team filter is applied
+            rowColors.push({});
           }
         });
-      });
+        return { body, rowColors };
+      };
 
-      const header = document.querySelector('h1').textContent;
-      const descEl = document.querySelector('p.description');
-      const desc = descEl ? descEl.innerText.replace(/\n+/g, ' ') : '';
-      const descLines = doc.splitTextToSize(desc, doc.internal.pageSize.getWidth() - 28);
-      const marginTop = 30 + descLines.length * 6;
-
-      doc.autoTable({
-        head: [['Date', 'Time', 'Team', 'Opponent', 'Court', 'Duty', 'Division']],
-        body,
-        margin: { top: marginTop },
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [0, 100, 0] },
-        didDrawPage: (data) => {
-          doc.setFontSize(16);
-          doc.text(header, data.settings.margin.left, 15);
-          doc.setFontSize(10);
-          doc.text(descLines, data.settings.margin.left, 22);
-        },
-        didParseCell: (data) => {
-          if (data.section === 'body') {
-            const colors = rowColors[data.row.index] || {};
-            if (data.column.index === 2 && colors.team) {
-              data.cell.styles.textColor = colors.team;
-              if (team) data.cell.styles.fontStyle = 'bold';
-            } else if (data.column.index === 3 && colors.opponent) {
-              data.cell.styles.textColor = colors.opponent;
-              if (team) data.cell.styles.fontStyle = 'bold';
-            } else if (data.column.index === 5 && colors.duty) {
-              data.cell.styles.textColor = colors.duty;
-              if (team) data.cell.styles.fontStyle = 'bold';
-            }
-          }
-        }
-      });
+      if (allFiltersClear) {
+        dateList.forEach((d, idx) => {
+          const { body, rowColors } = processDate(d);
+          if (!body.length) return;
+          if (idx > 0) doc.addPage();
+          renderTable(body, rowColors);
+        });
+      } else {
+        const body = [];
+        const rowColors = [];
+        dateList.forEach(d => {
+          const result = processDate(d);
+          body.push(...result.body);
+          rowColors.push(...result.rowColors);
+        });
+        renderTable(body, rowColors);
+      }
 
       const url = doc.output('bloburl');
       window.open(url, '_blank');
