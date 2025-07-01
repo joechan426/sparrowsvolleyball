@@ -330,9 +330,9 @@
     let divisionColorMap = {};
     let highlightedTeamKey = null;
     const colorPalette = [
-      '#ff5722', '#4caf50', '#2196f3', '#ff9800', '#9c27b0',
-      '#e91e63', '#3f51b5', '#009688', '#795548', '#607d8b',
-      '#673ab7', '#00bcd4'
+      '#ff1744', '#00e676', '#2979ff', '#ff9100', '#d500f9',
+      '#f50057', '#651fff', '#00bfa5', '#ffea00', '#64dd17',
+      '#00b0ff', '#ff4081'
     ];
     const apiUrl = "https://script.google.com/macros/s/AKfycbwwqw-OB2Vl8Lap6UCumyhUTnJahAFkPkkBbCCg-7t_tJthI7uMbrYxc6sRiuic-3s/exec";
     function showTab(tab) {
@@ -405,6 +405,17 @@
     function hexToRgb(hex) {
       const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return res ? [parseInt(res[1],16), parseInt(res[2],16), parseInt(res[3],16)] : [0,0,0];
+    }
+
+    function getDutyColor(duty) {
+      if (!duty) return null;
+      const norm = normalizeName(duty);
+      for (const key in teamColorMap) {
+        if (norm.includes(key)) {
+          return hexToRgb(teamColorMap[key]);
+        }
+      }
+      return null;
     }
 
     let teamNameMap = {};
@@ -975,14 +986,18 @@
 
           if (team) {
             const hl = [57, 255, 20];
+            const dutyHighlight = normalizeName(match.dutyTeam || '').includes(normalizeName(team)) ? hl : null;
             rowColors.push({
               team: team === match.team ? hl : null,
               opponent: team === match.opponent ? hl : null,
-              duty: team === match.dutyTeam ? hl : null
+              duty: dutyHighlight
             });
           } else {
-            // Use default text color when no team filter is applied
-            rowColors.push({});
+            rowColors.push({
+              team: hexToRgb(getTeamColor(match.team)),
+              opponent: hexToRgb(getTeamColor(match.opponent)),
+              duty: getDutyColor(match.dutyTeam)
+            });
           }
         });
         return { body, rowColors };
