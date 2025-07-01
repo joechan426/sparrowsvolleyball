@@ -898,26 +898,65 @@
     function printSchedulePdf() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
+
+      const team = document.getElementById("teamFilter").value;
+      const division = document.getElementById("divisionFilter").value;
+      const court = document.getElementById("courtFilter").value;
+      const date = document.getElementById("dateFilter").value;
+
       const body = [];
-      const dates = Object.keys(scheduleData).sort((a, b) => new Date(a) - new Date(b));
-      dates.forEach(date => {
-        (scheduleData[date] || []).forEach(match => {
+      const highlightRows = [];
+      const dateList = date
+        ? [date]
+        : Object.keys(scheduleData).sort((a, b) => new Date(a) - new Date(b));
+
+      dateList.forEach(d => {
+        (scheduleData[d] || []).forEach(match => {
+          if (team && team !== match.team && team !== match.opponent && team !== match.dutyTeam) return;
+          if (division && match.division !== division) return;
+          if (court && match.location !== court) return;
+
           body.push([
-            date,
+            d,
             match.time || '',
             `${match.team} vs ${match.opponent}`,
             match.location || '',
             match.dutyTeam || '',
             match.division || ''
           ]);
+          highlightRows.push(
+            !!team && (team === match.team || team === match.opponent || team === match.dutyTeam)
+          );
         });
       });
+
+      const header = document.querySelector('h1').textContent;
+      const descEl = document.querySelector('p.description');
+      const desc = descEl ? descEl.innerText.replace(/\n+/g, ' ') : '';
+      const descLines = doc.splitTextToSize(desc, doc.internal.pageSize.getWidth() - 28);
+      const marginTop = 30 + descLines.length * 6;
+
       doc.autoTable({
         head: [['Date', 'Time', 'Match', 'Court', 'Duty', 'Division']],
         body,
+        startY: marginTop,
         styles: { fontSize: 10 },
-        headStyles: { fillColor: [0, 100, 0] }
+        headStyles: { fillColor: [0, 100, 0] },
+        didDrawPage: (data) => {
+          doc.setFontSize(16);
+          doc.text(header, data.settings.margin.left, 15);
+          doc.setFontSize(10);
+          doc.text(descLines, data.settings.margin.left, 22);
+        },
+        didParseCell: (data) => {
+          if (data.section === 'body' && highlightRows[data.row.index]) {
+            data.cell.styles.fillColor = [255, 245, 157];
+            data.cell.styles.lineColor = [57, 255, 20];
+            data.cell.styles.lineWidth = 0.75;
+          }
+        }
       });
+
       const url = doc.output('bloburl');
       window.open(url, '_blank');
     }
