@@ -294,6 +294,8 @@
     }
 
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <h1>Sparrowsvolleyball Challenger League & SML Season 4 Schedule</h1>
@@ -312,6 +314,7 @@
     <select id="courtFilter"></select>
     <select id="dateFilter"></select>
     <button onclick="resetFilters()">Reset</button>
+    <button id="printScheduleBtn" onclick="printSchedulePdf()">Print Schedule</button>
   </div>
   <div id="results"></div>
   </div>
@@ -890,6 +893,33 @@
       } else {
         alert("Error submitting result.");
       }
+    }
+
+    function printSchedulePdf() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const body = [];
+      const dates = Object.keys(scheduleData).sort((a, b) => new Date(a) - new Date(b));
+      dates.forEach(date => {
+        (scheduleData[date] || []).forEach(match => {
+          body.push([
+            date,
+            match.time || '',
+            `${match.team} vs ${match.opponent}`,
+            match.location || '',
+            match.dutyTeam || '',
+            match.division || ''
+          ]);
+        });
+      });
+      doc.autoTable({
+        head: [['Date', 'Time', 'Match', 'Court', 'Duty', 'Division']],
+        body,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [0, 100, 0] }
+      });
+      const url = doc.output('bloburl');
+      window.open(url, '_blank');
     }
 
     document.getElementById("teamFilter").addEventListener("change", () => {
