@@ -329,6 +329,7 @@
   </div>
   <div id="liveResultsSection" style="display:none;">
     <div id="divisionTabs" class="division-tabs"></div>
+    <button id="combineViewBtn">Combine Divisions Table View</button>
     <div id="divisionContent"></div>
   </div>
 
@@ -677,6 +678,134 @@
       document.querySelectorAll(`.team-color[data-team="${teamKey}"]`).forEach(e => e.classList.add('highlight'));
       const row = document.querySelector(`.ranking-table tr[data-team="${teamKey}"]`);
       if (row) row.classList.add('highlight');
+    }
+
+    function openCombineDivisionsPopup() {
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      const popup = document.createElement('div');
+      popup.className = 'popup';
+
+      const divisions = Object.keys(liveResults.divisions || {});
+      const checkboxes = divisions.map(div =>
+        `<label><input type="checkbox" value="${div}"> ${div}</label>`).join('<br>');
+
+      popup.innerHTML = `
+        <div class="popup-content">
+          <h3>Select Divisions</h3>
+          ${checkboxes}
+          <div class="popup-buttons">
+            <button id="combineConfirm">Show</button>
+            <button id="combineCancel">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+
+      const cleanup = () => {
+        document.body.removeChild(popup);
+        document.body.removeChild(overlay);
+      };
+      popup.querySelector('#combineCancel').addEventListener('click', cleanup);
+      popup.querySelector('#combineConfirm').addEventListener('click', () => {
+        const selected = [];
+        popup.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => selected.push(cb.value));
+        cleanup();
+        if (selected.length) showCombinedDivisions(selected);
+      });
+    }
+
+    function showCombinedDivisions(divList) {
+      highlightTeam(null);
+      const schedule = {};
+      for (const date in liveResults.schedule || {}) {
+        const matches = (liveResults.schedule[date] || []).filter(m => divList.includes(m.division));
+        if (matches.length) {
+          schedule[date] = matches.map(m => ({ ...m, origDivision: m.division, division: 'Combined' }));
+        }
+      }
+      const standingsObj = computeStandings(schedule);
+      const data = standingsObj['Combined'];
+      const container = document.getElementById('divisionContent');
+      if (!data) { container.innerHTML = ''; return; }
+
+      let html = '<div class="auto-renew-note">Table auto renew every 30 sec</div>' +
+        '<table class="ranking-table"><thead><tr>' +
+        '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
+        '<th>SW</th><th>SL</th><th>Set%</th>' +
+        '<th>PW</th><th>PL</th><th>Pts%</th>' +
+        '</tr></thead><tbody>';
+      data.standings.forEach(row => {
+        const nameKey = normalizeName(row.team);
+        const displayName = teamNameMap[nameKey] || row.team;
+        const setPct = row.setsWon + row.setsLost > 0 ?
+          (row.setsWon / (row.setsWon + row.setsLost) * 100).toFixed(1) : '0';
+        const scorePct = row.pointsWon + row.pointsLost > 0 ?
+          (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
+        const color = getTeamColor(displayName);
+        html += `<tr data-team="${nameKey}"><td>${row.rank}</td><td><span class="team-color team-entry" data-team="${nameKey}" style="color:${color}">${displayName}</span></td>` +
+          `<td>${row.wins}</td><td>${row.losses}</td><td>${row.draws}</td>` +
+          `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
+          `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
+      });
+      html += '</tbody></table>';
+
+      html += '<div class="match-days">';
+      for (const date in schedule) {
+        const matches = schedule[date];
+        html += `<div class="card match-day"><div class="date-header">${date}</div>`;
+        matches.forEach(match => {
+          const aScores = (match.scores && match.scores.a) || [];
+          const bScores = (match.scores && match.scores.b) || [];
+          const len = Math.max(aScores.length, bScores.length);
+          let swA = 0, swB = 0;
+          for (let i = 0; i < len; i++) {
+            const sa = aScores[i];
+            const sb = bScores[i];
+            if (sa !== undefined && sb !== undefined) {
+              const diff = Math.abs(sa - sb);
+              const isLeague = /league/i.test(match.origDivision);
+              const minPts = isLeague ? 12 : 8;
+              if ((sa >= minPts || sb >= minPts) && diff >= 2) {
+                if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
+              }
+            }
+          }
+          const keyA = normalizeName(match.team);
+          const keyB = normalizeName(match.opponent);
+          const colorA = getTeamColor(match.team);
+          const colorB = getTeamColor(match.opponent);
+          const setLabels = ['1st Set', '2nd Set', '3rd Set', '4th Set', '5th Set'];
+          const header = [];
+          const scores = [];
+          const maxSets = Math.max(aScores.length, bScores.length, 5);
+          for (let i = 0; i < maxSets; i++) {
+            const sa = aScores[i];
+            const sb = bScores[i];
+            if (sa === undefined || sb === undefined) continue;
+            header.push(`<th class="set-num">${setLabels[i] || `${i + 1}th Set`}</th>`);
+            scores.push(`<td class="set-score">${sa}-${sb}</td>`);
+          }
+
+          html += `<div class="match-result">` +
+            `<div class="match-header"><span class="team-color team-entry" data-team="${keyA}" style="color:${colorA}">${match.team}</span>` +
+            ` <span class="set-count">${swA}-${swB}</span> ` +
+            `<span class="team-color team-entry" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span>` +
+            ` <span class="division">${match.origDivision}</span></div>` +
+            `<table class="set-table"><tr>${header.join('')}</tr><tr>${scores.join('')}</tr></table>` +
+            `</div>`;
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+
+      container.innerHTML = html;
+
+      document.querySelectorAll('#divisionTabs button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('#divisionContent .team-entry').forEach(el => {
+        el.addEventListener('click', () => highlightTeam(el.dataset.team));
+      });
     }
 
     function populateFilters() {
@@ -1062,6 +1191,7 @@
       filterResults();
     });
     document.getElementById("dateFilter").addEventListener("change", filterResults);
+    document.getElementById("combineViewBtn").addEventListener("click", openCombineDivisionsPopup);
     window.addEventListener("DOMContentLoaded", async () => {
       showLoading("Data retrieving");
       showTab("schedule");
