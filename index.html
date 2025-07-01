@@ -255,18 +255,26 @@
     }
     .match-header {
       display: flex;
-      justify-content: center;
       align-items: center;
       gap: 8px;
-      flex-wrap: nowrap;
     }
-    .match-header .team-color,
+    .match-header .team-color {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .match-header .team-color:first-child {
+      text-align: right;
+    }
+    .match-header .team-color:last-child {
+      text-align: left;
+    }
     .match-header .set-count {
+      flex: 0 0 auto;
       margin: 0 4px;
       display: inline-flex;
       align-items: center;
-    }
-    .match-header .set-count {
       font-size: 20px;
       font-weight: bold;
       color: #0d47a1;
@@ -627,11 +635,11 @@
         const setLabels = ['1st Set', '2nd Set', '3rd Set', '4th Set', '5th Set'];
         const header = [];
         const scores = [];
-        for (let i = 0; i < len; i++) {
+        const maxSets = 5;
+        for (let i = 0; i < maxSets; i++) {
+          header.push(`<th class="set-num">${setLabels[i] || `${i + 1}th Set`}</th>`);
           const sa = aScores[i];
           const sb = bScores[i];
-          if (sa === undefined && sb === undefined) continue;
-          header.push(`<th class="set-num">${setLabels[i] || `${i + 1}th Set`}</th>`);
           const score = (sa === undefined || sb === undefined) ? '-' : `${sa}-${sb}`;
           scores.push(`<td class="set-score">${score}</td>`);
         }
