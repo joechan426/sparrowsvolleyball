@@ -312,6 +312,7 @@
     <select id="courtFilter"></select>
     <select id="dateFilter"></select>
     <button onclick="resetFilters()">Reset</button>
+    <button onclick="openPrintSchedule()">Print Schedule</button>
   </div>
   <div id="results"></div>
   </div>
@@ -740,13 +741,35 @@
             btn.onclick = () => promptPasscode(d, index, match.team, match.opponent);
             card.appendChild(btn);
           }
-          results.appendChild(card);
-        });
+      results.appendChild(card);
       });
-    }
+    });
+  }
 
-    function promptPasscode(date, index, team, opponent) {
-      const overlay = document.createElement("div");
+  function openPrintSchedule() {
+    const win = window.open('', '_blank');
+    if (!win) return;
+    const doc = win.document;
+    doc.write('<html><head><title>Printable Schedule</title>');
+    doc.write('<style>body{font-family:Arial,Helvetica,sans-serif;margin:20px;}table{border-collapse:collapse;width:100%;font-size:12px;}th,td{border:1px solid #333;padding:4px;text-align:left;}@page{size:A4 landscape;margin:10mm;}</style>');
+    doc.write('</head><body>');
+    doc.write('<h1>Sparrows Volleyball Schedule</h1>');
+    doc.write('<table><thead><tr><th>Date</th><th>Time</th><th>Team</th><th>Opponent</th><th>Division</th><th>Court</th><th>Duty</th></tr></thead><tbody>');
+    const dates = Object.keys(scheduleData).sort();
+    dates.forEach(d => {
+      (scheduleData[d] || []).forEach(m => {
+        if (!m) return;
+        doc.write(`<tr><td>${d}</td><td>${m.time || ''}</td><td>${m.team || ''}</td><td>${m.opponent || ''}</td><td>${m.division || ''}</td><td>${m.location || ''}</td><td>${m.dutyTeam || ''}</td></tr>`);
+      });
+    });
+    doc.write('</tbody></table>');
+    doc.write('<script>window.onload=function(){window.print();};</script>');
+    doc.write('</body></html>');
+    doc.close();
+  }
+
+  function promptPasscode(date, index, team, opponent) {
+    const overlay = document.createElement("div");
       overlay.className = "overlay";
       const popup = document.createElement("div");
       popup.className = "popup";
