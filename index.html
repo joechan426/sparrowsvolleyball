@@ -739,7 +739,13 @@
           const matchTeam = match.team,
                 matchOpponent = match.opponent,
                 duty = match.dutyTeam;
-          if (team && team !== matchTeam && team !== matchOpponent && team !== duty) return;
+          if (team) {
+            const t = normalizeName(team);
+            const dutyText = normalizeName(duty || "");
+            if (t !== normalizeName(matchTeam) &&
+                t !== normalizeName(matchOpponent) &&
+                !dutyText.includes(t)) return;
+          }
           if (division && match.division !== division) return;
           if (court && match.location !== court) return;
 
@@ -970,7 +976,13 @@
         const body = [];
         const rowColors = [];
         (scheduleData[d] || []).forEach(match => {
-          if (team && team !== match.team && team !== match.opponent && team !== match.dutyTeam) return;
+          if (team) {
+            const t = normalizeName(team);
+            const dutyText = normalizeName(match.dutyTeam || '');
+            if (t !== normalizeName(match.team) &&
+                t !== normalizeName(match.opponent) &&
+                !dutyText.includes(t)) return;
+          }
           if (division && match.division !== division) return;
           if (court && match.location !== court) return;
 
