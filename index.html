@@ -240,8 +240,8 @@
       gap: 15px;
     }
     .match-day {
-      flex: 1 1 300px;
-      min-width: 280px;
+      flex: 1 1 340px;
+      min-width: 320px;
       margin-bottom: 15px;
     }
     .date-header {
@@ -250,8 +250,8 @@
       color: #006400;
     }
     .match-result {
-      width: 260px;
-      margin: 0 auto 6px;
+      width: 100%;
+      margin: 0 0 6px;
     }
     .match-header {
       display: flex;
@@ -290,6 +290,7 @@
       padding: 1px 4px;
       text-align: center;
       vertical-align: middle;
+      white-space: nowrap;
     }
     .set-table th.set-num {
       text-align: center;
@@ -635,13 +636,13 @@
         const setLabels = ['1st Set', '2nd Set', '3rd Set', '4th Set', '5th Set'];
         const header = [];
         const scores = [];
-        const maxSets = 5;
+        const maxSets = Math.max(aScores.length, bScores.length, 5);
         for (let i = 0; i < maxSets; i++) {
-          header.push(`<th class="set-num">${setLabels[i] || `${i + 1}th Set`}</th>`);
           const sa = aScores[i];
           const sb = bScores[i];
-          const score = (sa === undefined || sb === undefined) ? '-' : `${sa}-${sb}`;
-          scores.push(`<td class="set-score">${score}</td>`);
+          if (sa === undefined || sb === undefined) continue;
+          header.push(`<th class="set-num">${setLabels[i] || `${i + 1}th Set`}</th>`);
+          scores.push(`<td class="set-score">${sa}-${sb}</td>`);
         }
 
         html += `<div class="match-result">` +
