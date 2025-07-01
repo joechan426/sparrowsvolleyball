@@ -400,6 +400,11 @@
       return divisionColorMap[div] || '#333';
     }
 
+    function hexToRgb(hex) {
+      const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return res ? [parseInt(res[1],16), parseInt(res[2],16), parseInt(res[3],16)] : [0,0,0];
+    }
+
     let teamNameMap = {};
     function normalizeName(name) {
       return (name || "").trim().toLowerCase();
@@ -905,7 +910,7 @@
       const date = document.getElementById("dateFilter").value;
 
       const body = [];
-      const highlightRows = [];
+      const rowColors = [];
       const dateList = date
         ? [date]
         : Object.keys(scheduleData).sort((a, b) => new Date(a) - new Date(b));
@@ -919,14 +924,27 @@
           body.push([
             d,
             match.time || '',
-            `${match.team} vs ${match.opponent}`,
+            match.team || '',
+            match.opponent || '',
             match.location || '',
             match.dutyTeam || '',
             match.division || ''
           ]);
-          highlightRows.push(
-            !!team && (team === match.team || team === match.opponent || team === match.dutyTeam)
-          );
+
+          if (team) {
+            const hl = [57, 255, 20];
+            rowColors.push({
+              team: team === match.team ? hl : null,
+              opponent: team === match.opponent ? hl : null,
+              duty: team === match.dutyTeam ? hl : null
+            });
+          } else {
+            rowColors.push({
+              team: hexToRgb(getTeamColor(match.team)),
+              opponent: hexToRgb(getTeamColor(match.opponent)),
+              duty: hexToRgb(getTeamColor(match.dutyTeam))
+            });
+          }
         });
       });
 
@@ -937,9 +955,9 @@
       const marginTop = 30 + descLines.length * 6;
 
       doc.autoTable({
-        head: [['Date', 'Time', 'Match', 'Court', 'Duty', 'Division']],
+        head: [['Date', 'Time', 'Team', 'Opponent', 'Court', 'Duty', 'Division']],
         body,
-        startY: marginTop,
+        margin: { top: marginTop },
         styles: { fontSize: 10 },
         headStyles: { fillColor: [0, 100, 0] },
         didDrawPage: (data) => {
@@ -949,10 +967,18 @@
           doc.text(descLines, data.settings.margin.left, 22);
         },
         didParseCell: (data) => {
-          if (data.section === 'body' && highlightRows[data.row.index]) {
-            data.cell.styles.fillColor = [255, 245, 157];
-            data.cell.styles.lineColor = [57, 255, 20];
-            data.cell.styles.lineWidth = 0.75;
+          if (data.section === 'body') {
+            const colors = rowColors[data.row.index] || {};
+            if (data.column.index === 2 && colors.team) {
+              data.cell.styles.textColor = colors.team;
+              if (team) data.cell.styles.fontStyle = 'bold';
+            } else if (data.column.index === 3 && colors.opponent) {
+              data.cell.styles.textColor = colors.opponent;
+              if (team) data.cell.styles.fontStyle = 'bold';
+            } else if (data.column.index === 5 && colors.duty) {
+              data.cell.styles.textColor = colors.duty;
+              if (team) data.cell.styles.fontStyle = 'bold';
+            }
           }
         }
       });
