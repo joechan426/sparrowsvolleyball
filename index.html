@@ -318,6 +318,7 @@
     let defaultDate = "";
     let teamColorMap = {};
     let divisionColorMap = {};
+    let highlightedTeamKey = null;
     const colorPalette = [
       '#ff5722', '#4caf50', '#2196f3', '#ff9800', '#9c27b0',
       '#e91e63', '#3f51b5', '#009688', '#795548', '#607d8b',
@@ -329,6 +330,7 @@
       document.getElementById("liveResultsSection").style.display = tab === "live" ? "block" : "none";
       document.getElementById("scheduleTab").classList.toggle("active", tab === "schedule");
       document.getElementById("liveTab").classList.toggle("active", tab === "live");
+      if (tab !== "live") highlightTeam(null);
     }
 
 
@@ -537,7 +539,9 @@
     }
 
     function showDivision(div) {
+      const changed = currentDivision !== div;
       currentDivision = div;
+      if (changed) highlightTeam(null);
       const data = (liveResults.divisions || {})[div];
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
@@ -605,9 +609,9 @@
         }
 
         html += `<div class="match-result">` +
-          `<div class="match-header"><span class="team-color" data-team="${keyA}" style="color:${colorA}">${match.team}</span>` +
+          `<div class="match-header"><span class="team-color team-entry" data-team="${keyA}" style="color:${colorA}">${match.team}</span>` +
           ` <span class="set-count">${swA}-${swB}</span> ` +
-          `<span class="team-color" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span></div>` +
+          `<span class="team-color team-entry" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span></div>` +
           `<table class="set-table"><tr>${header.join('')}</tr><tr>${scores.join('')}</tr></table>` +
           `</div>`;
         });
@@ -625,11 +629,14 @@
       document.querySelectorAll('#divisionContent .team-entry').forEach(el => {
         el.addEventListener('click', () => highlightTeam(el.dataset.team));
       });
+      if (highlightedTeamKey) highlightTeam(highlightedTeamKey);
     }
 
     function highlightTeam(teamKey) {
+      highlightedTeamKey = teamKey;
       document.querySelectorAll('.team-color.highlight').forEach(e => e.classList.remove('highlight'));
       document.querySelectorAll('.ranking-table tr.highlight').forEach(e => e.classList.remove('highlight'));
+      if (!teamKey) return;
       document.querySelectorAll(`.team-color[data-team="${teamKey}"]`).forEach(e => e.classList.add('highlight'));
       const row = document.querySelector(`.ranking-table tr[data-team="${teamKey}"]`);
       if (row) row.classList.add('highlight');
