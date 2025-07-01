@@ -28,7 +28,3 @@ document used for the schedule. The site calls a Google Apps Script (`apiUrl` in
 `index.html`) to fetch the latest results and to record score updates. This
 means no manual updates to `content/results.json` are required.
 
-## Printing the Schedule
-
-Within the Schedule tab of `index.html`, click **Print Schedule** to open a printable view of all matches. Use your browser's print dialog to save the page as PDF or send it directly to a printer.
-
