@@ -1129,16 +1129,12 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
-        const rowHeights = [];
         const body = times.map(t => {
           const row = [t];
-          let maxCount = 0;
           courts.forEach(c => {
             const cellMatches = matches.filter(m => m.time === t && m.location === c);
-            maxCount = Math.max(maxCount, cellMatches.length);
             row.push({ matches: cellMatches });
           });
-          rowHeights.push(maxCount || 1);
           return row;
         });
 
@@ -1151,13 +1147,15 @@
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
           didParseCell: data => {
-            if (data.section === 'body') {
-              const rowIdx = data.row.index;
-              const height = rowHeights[rowIdx] * 18;
-              data.cell.styles.minCellHeight = height;
-              if (data.column.index > 0) {
-                data.cell.text = '';
-              }
+            if (data.section === 'body' && data.column.index > 0) {
+              const ms = (data.cell.raw && data.cell.raw.matches) || [];
+              let height = 0;
+              ms.forEach(m => {
+                const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
+                height += 8 + dutyLines * 4 + 2 + 5 + 4; // team+opp, duty, gap, division, gap
+              });
+              data.cell.styles.minCellHeight = Math.max(18, height);
+              data.cell.text = '';
             }
           },
           didDrawPage: data => {
@@ -1173,7 +1171,7 @@
               const ms = (data.cell.raw && data.cell.raw.matches) || [];
               let y = data.cell.y + 4;
               ms.forEach(m => {
-                doc.setFontSize(8);
+                doc.setFontSize(9);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
                 doc.text(`${m.team || ''} vs`, data.cell.x + 2, y);
                 y += 4;
@@ -1187,18 +1185,19 @@
                   doc.text(line, data.cell.x + 2, y);
                   y += 4;
                 });
-                const padding = 3;
+                y += 2; // gap before division
+                const padding = 2;
                 const divText = m.division || '';
                 const textW = doc.getTextWidth(divText);
                 const rectW = textW + padding * 2;
-                const rectH = 6;
+                const rectH = 4;
                 doc.setFillColor(224, 224, 224);
-                doc.roundedRect(data.cell.x + 2, y - 4, rectW, rectH, 3, 3, 'F');
+                doc.roundedRect(data.cell.x + 2, y, rectW, rectH, 2, 2, 'F');
                 doc.setFontSize(7);
                 doc.setTextColor(51, 51, 51);
-                doc.text(divText, data.cell.x + 2 + padding, y);
-                y += 2;
-                });
+                doc.text(divText, data.cell.x + 2 + padding, y + rectH - 1);
+                y += rectH + 2;
+              });
               doc.setTextColor(0,0,0);
             }
           }
