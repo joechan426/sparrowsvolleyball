@@ -1076,7 +1076,6 @@
       const court = document.getElementById("courtFilter").value;
       const date = document.getElementById("dateFilter").value;
 
-      const headers = ['Date', 'Time', 'Team A', 'Team B', 'Court', 'Duty', 'Division'];
       const allFiltersClear = !team && !division && !court && !date;
       const dateList = date
         ? [date]
@@ -1088,9 +1087,22 @@
       const descLines = doc.splitTextToSize(desc, doc.internal.pageSize.getWidth() - 28);
       const marginTop = 30 + descLines.length * 6;
 
-      const renderTable = (body, rowColors) => {
+      const filterMatch = (match) => {
+        if (team) {
+          const t = normalizeName(team);
+          const dutyText = normalizeName(match.dutyTeam || '');
+          if (t !== normalizeName(match.team) &&
+              t !== normalizeName(match.opponent) &&
+              !dutyText.includes(t)) return false;
+        }
+        if (division && match.division !== division) return false;
+        if (court && match.location !== court) return false;
+        return true;
+      };
+
+      const renderExcelTable = (head, body) => {
         doc.autoTable({
-          head: [headers],
+          head: [head],
           body,
           margin: { top: marginTop },
           styles: { fontSize: 10 },
@@ -1101,85 +1113,46 @@
             doc.text(header, data.settings.margin.left, 15);
             doc.setFontSize(10);
             doc.text(descLines, data.settings.margin.left, 22);
-          },
-          didParseCell: (data) => {
-            if (data.section === 'body') {
-              const colors = rowColors[data.row.index] || {};
-              if (data.column.index === 2 && colors.team) {
-                data.cell.styles.textColor = colors.team;
-                if (team) data.cell.styles.fontStyle = 'bold';
-              } else if (data.column.index === 3 && colors.opponent) {
-                data.cell.styles.textColor = colors.opponent;
-                if (team) data.cell.styles.fontStyle = 'bold';
-              } else if (data.column.index === 5 && colors.duty) {
-                data.cell.styles.textColor = colors.duty;
-                if (team) data.cell.styles.fontStyle = 'bold';
-              }
-            }
           }
         });
       };
 
-      const processDate = (d) => {
-        const body = [];
-        const rowColors = [];
-        (scheduleData[d] || []).forEach(match => {
-          if (team) {
-            const t = normalizeName(team);
-            const dutyText = normalizeName(match.dutyTeam || '');
-            if (t !== normalizeName(match.team) &&
-                t !== normalizeName(match.opponent) &&
-                !dutyText.includes(t)) return;
-          }
-          if (division && match.division !== division) return;
-          if (court && match.location !== court) return;
+      const buildTableForDate = (d) => {
+        const matches = (scheduleData[d] || []).filter(filterMatch);
+        if (!matches.length) return null;
 
-          body.push([
-            d,
-            match.time || '',
-            match.team || '',
-            match.opponent || '',
-            match.location || '',
-            match.dutyTeam || '',
-            match.division || ''
-          ]);
+        const times = [...new Set(matches.map(m => m.time))].sort((a, b) =>
+          a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' })
+        );
+        const courts = [...new Set(matches.map(m => m.location))].sort((a, b) =>
+          a.localeCompare(b, 'en', { sensitivity: 'base' })
+        );
 
-          if (team) {
-            const hl = [57, 255, 20];
-            const dutyHighlight = normalizeName(match.dutyTeam || '').includes(normalizeName(team)) ? hl : null;
-            rowColors.push({
-              team: team === match.team ? hl : null,
-              opponent: team === match.opponent ? hl : null,
-              duty: dutyHighlight
-            });
-          } else {
-            rowColors.push({
-              team: hexToRgb(getTeamColor(match.team)),
-              opponent: hexToRgb(getTeamColor(match.opponent)),
-              duty: getDutyColor(match.dutyTeam)
-            });
-          }
+        const lookup = {};
+        matches.forEach(m => {
+          lookup[`${m.time}|${m.location}`] = `${m.team} vs ${m.opponent}`;
         });
-        return { body, rowColors };
+
+        const body = times.map(t => {
+          const row = [t];
+          courts.forEach(c => {
+            row.push(lookup[`${t}|${c}`] || '');
+          });
+          return row;
+        });
+
+        const head = ['Time', ...courts];
+        return { head, body };
       };
 
-      if (allFiltersClear) {
-        dateList.forEach((d, idx) => {
-          const { body, rowColors } = processDate(d);
-          if (!body.length) return;
-          if (idx > 0) doc.addPage();
-          renderTable(body, rowColors);
-        });
-      } else {
-        const body = [];
-        const rowColors = [];
-        dateList.forEach(d => {
-          const result = processDate(d);
-          body.push(...result.body);
-          rowColors.push(...result.rowColors);
-        });
-        renderTable(body, rowColors);
-      }
+      let pageIdx = 0;
+      dateList.forEach(d => {
+        const table = buildTableForDate(d);
+        if (!table) return;
+        if (pageIdx > 0) doc.addPage();
+        renderExcelTable(table.head, table.body);
+        pageIdx++;
+      });
 
       const url = doc.output('bloburl');
       window.open(url, '_blank');
