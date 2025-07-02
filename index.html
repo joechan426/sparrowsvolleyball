@@ -550,6 +550,7 @@
 
     let liveResults = {};
     let currentDivision = null;
+    let combinedDivisions = null;
     async function fetchResults() {
       const res = await fetch(`${apiUrl}?action=getResults`, { cache: 'no-store' });
       liveResults = await res.json();
@@ -573,12 +574,17 @@
       });
       assignTeamColors();
       if (!currentDivision) currentDivision = divisions[0];
-      showDivision(currentDivision);
+      if (combinedDivisions) {
+        showCombinedDivisions(combinedDivisions);
+      } else {
+        showDivision(currentDivision);
+      }
     }
 
     function showDivision(div) {
       const changed = currentDivision !== div;
       currentDivision = div;
+      combinedDivisions = null;
       if (changed) highlightTeam(null);
       const data = (liveResults.divisions || {})[div];
       const container = document.getElementById('divisionContent');
@@ -717,6 +723,7 @@
     }
 
     function showCombinedDivisions(divList) {
+      combinedDivisions = divList.slice();
       highlightTeam(null);
       const schedule = {};
       for (const date in liveResults.schedule || {}) {
