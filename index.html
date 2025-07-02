@@ -1069,12 +1069,14 @@
 
     function printSchedulePdf() {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
 
       const team = document.getElementById("teamFilter").value;
       const division = document.getElementById("divisionFilter").value;
       const court = document.getElementById("courtFilter").value;
       const date = document.getElementById("dateFilter").value;
+
+      const matrixMode = !team && !division && !court;
+      const doc = new jsPDF({ orientation: matrixMode ? 'landscape' : 'portrait' });
 
       const headers = ['Date', 'Time', 'Team A', 'Team B', 'Court', 'Duty', 'Division'];
       const allFiltersClear = !team && !division && !court && !date;
@@ -1115,6 +1117,68 @@
                 data.cell.styles.textColor = colors.duty;
                 if (team) data.cell.styles.fontStyle = 'bold';
               }
+            }
+          }
+        });
+      };
+
+      const renderMatrixTable = (d) => {
+        const matches = (scheduleData[d] || []);
+        if (!matches.length) return;
+
+        const times = Array.from(new Set(matches.map(m => m.time))).sort();
+        const courts = Array.from(new Set(matches.map(m => m.location))).sort();
+
+        const body = times.map(t => {
+          const row = [t];
+          courts.forEach(c => {
+            const cellMatches = matches.filter(m => m.time === t && m.location === c);
+            row.push({ matches: cellMatches });
+          });
+          return row;
+        });
+
+        doc.autoTable({
+          head: [["Time", ...courts]],
+          body,
+          margin: { top: marginTop },
+          styles: { fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [0, 100, 0] },
+          didParseCell: data => {
+            if (data.section === 'body' && data.column.index > 0) {
+              data.cell.text = '';
+            }
+          },
+          didDrawPage: data => {
+            doc.setFontSize(16);
+            doc.text(header, data.settings.margin.left, 15);
+            doc.setFontSize(10);
+            doc.text(descLines, data.settings.margin.left, 22);
+            doc.setFontSize(12);
+            doc.text(d, data.settings.margin.left, marginTop - 4);
+          },
+          didDrawCell: data => {
+            if (data.section === 'body' && data.column.index > 0) {
+              const ms = (data.cell.raw && data.cell.raw.matches) || [];
+              let y = data.cell.y + 4;
+              ms.forEach(m => {
+                doc.setFontSize(8);
+                doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
+                doc.text(m.team || '', data.cell.x + 2, y);
+                let x = data.cell.x + 2 + doc.getTextWidth(m.team || '');
+                doc.setTextColor(0, 0, 0);
+                doc.text(' vs ', x, y);
+                x += doc.getTextWidth(' vs ');
+                doc.setTextColor(...hexToRgb(getTeamColor(m.opponent)));
+                doc.text(m.opponent || '', x, y);
+                y += 4;
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Duty: ${m.dutyTeam || ''}`, data.cell.x + 2, y);
+                y += 4;
+                doc.text(`Div: ${m.division || ''}`, data.cell.x + 2, y);
+                y += 2;
+              });
+              doc.setTextColor(0,0,0);
             }
           }
         });
@@ -1163,7 +1227,12 @@
         return { body, rowColors };
       };
 
-      if (allFiltersClear) {
+      if (matrixMode) {
+        dateList.forEach((d, idx) => {
+          if (idx > 0) doc.addPage();
+          renderMatrixTable(d);
+        });
+      } else if (allFiltersClear) {
         dateList.forEach((d, idx) => {
           const { body, rowColors } = processDate(d);
           if (!body.length) return;
