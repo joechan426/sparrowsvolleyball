@@ -1129,12 +1129,16 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
+        const rowHeights = [];
         const body = times.map(t => {
           const row = [t];
+          let maxCount = 0;
           courts.forEach(c => {
             const cellMatches = matches.filter(m => m.time === t && m.location === c);
+            maxCount = Math.max(maxCount, cellMatches.length);
             row.push({ matches: cellMatches });
           });
+          rowHeights.push(maxCount || 1);
           return row;
         });
 
@@ -1144,9 +1148,16 @@
           margin: { top: marginTop },
           styles: { fontSize: 9, cellPadding: 2 },
           headStyles: { fillColor: [0, 100, 0] },
+          tableLineWidth: 0.1,
+          tableLineColor: [0, 0, 0],
           didParseCell: data => {
-            if (data.section === 'body' && data.column.index > 0) {
-              data.cell.text = '';
+            if (data.section === 'body') {
+              const rowIdx = data.row.index;
+              const height = rowHeights[rowIdx] * 14;
+              data.cell.styles.minCellHeight = height;
+              if (data.column.index > 0) {
+                data.cell.text = '';
+              }
             }
           },
           didDrawPage: data => {
@@ -1172,10 +1183,18 @@
                 doc.setTextColor(...hexToRgb(getTeamColor(m.opponent)));
                 doc.text(m.opponent || '', x, y);
                 y += 4;
-                doc.setTextColor(0, 0, 0);
+                doc.setTextColor(150, 150, 150);
                 doc.text(`Duty: ${m.dutyTeam || ''}`, data.cell.x + 2, y);
                 y += 4;
-                doc.text(`Div: ${m.division || ''}`, data.cell.x + 2, y);
+                const padding = 3;
+                const divText = m.division || '';
+                const textW = doc.getTextWidth(divText);
+                const rectW = textW + padding * 2;
+                const rectH = 6;
+                doc.setFillColor(224, 224, 224);
+                doc.roundedRect(data.cell.x + 2, y - 4, rectW, rectH, 3, 3, 'F');
+                doc.setTextColor(51, 51, 51);
+                doc.text(divText, data.cell.x + 2 + padding, y);
                 y += 2;
               });
               doc.setTextColor(0,0,0);
