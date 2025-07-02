@@ -260,9 +260,8 @@
     }
     .match-header .team-color {
       flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal; /* allow team names to wrap */
+      overflow-wrap: anywhere;
     }
     .match-header .team-color:first-child {
       text-align: right;
