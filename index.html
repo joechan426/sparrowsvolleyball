@@ -1147,15 +1147,20 @@
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
           didParseCell: data => {
-            if (data.section === 'body' && data.column.index > 0) {
-              const ms = (data.cell.raw && data.cell.raw.matches) || [];
-              let height = 0;
-              ms.forEach(m => {
-                const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
-                height += 8 + dutyLines * 4 + 2 + 5 + 4; // team+opp, duty, gap, division, gap
-              });
-              data.cell.styles.minCellHeight = Math.max(18, height);
-              data.cell.text = '';
+            if (data.section === 'body') {
+              if (data.column.index === 0) {
+                data.cell.styles.fontSize = 11;
+                data.cell.styles.fontStyle = 'bold';
+              } else if (data.column.index > 0) {
+                const ms = (data.cell.raw && data.cell.raw.matches) || [];
+                let height = 0;
+                ms.forEach(m => {
+                  const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
+                  height += 8 + dutyLines * 4 + 2 + 4 + 2; // team+opp, duty, gap, division, gap
+                });
+                data.cell.styles.minCellHeight = Math.max(16, height);
+                data.cell.text = '';
+              }
             }
           },
           didDrawPage: data => {
