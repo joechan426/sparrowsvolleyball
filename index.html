@@ -1146,14 +1146,14 @@
           head: [["Time", ...courts]],
           body,
           margin: { top: marginTop },
-          styles: { fontSize: 9, cellPadding: 2 },
+          styles: { fontSize: 9, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] },
           headStyles: { fillColor: [0, 100, 0] },
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
           didParseCell: data => {
             if (data.section === 'body') {
               const rowIdx = data.row.index;
-              const height = rowHeights[rowIdx] * 14;
+              const height = rowHeights[rowIdx] * 18;
               data.cell.styles.minCellHeight = height;
               if (data.column.index > 0) {
                 data.cell.text = '';
@@ -1175,17 +1175,18 @@
               ms.forEach(m => {
                 doc.setFontSize(8);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
-                doc.text(m.team || '', data.cell.x + 2, y);
-                let x = data.cell.x + 2 + doc.getTextWidth(m.team || '');
-                doc.setTextColor(0, 0, 0);
-                doc.text(' vs ', x, y);
-                x += doc.getTextWidth(' vs ');
+                doc.text(`${m.team || ''} vs`, data.cell.x + 2, y);
+                y += 4;
                 doc.setTextColor(...hexToRgb(getTeamColor(m.opponent)));
-                doc.text(m.opponent || '', x, y);
+                doc.text(m.opponent || '', data.cell.x + 2, y);
                 y += 4;
                 doc.setTextColor(150, 150, 150);
-                doc.text(`Duty: ${m.dutyTeam || ''}`, data.cell.x + 2, y);
-                y += 4;
+                const dutyText = `Duty: ${m.dutyTeam || ''}`;
+                const dutyLines = doc.splitTextToSize(dutyText, data.cell.width - 4);
+                dutyLines.forEach(line => {
+                  doc.text(line, data.cell.x + 2, y);
+                  y += 4;
+                });
                 const padding = 3;
                 const divText = m.division || '';
                 const textW = doc.getTextWidth(divText);
@@ -1193,10 +1194,11 @@
                 const rectH = 6;
                 doc.setFillColor(224, 224, 224);
                 doc.roundedRect(data.cell.x + 2, y - 4, rectW, rectH, 3, 3, 'F');
+                doc.setFontSize(7);
                 doc.setTextColor(51, 51, 51);
                 doc.text(divText, data.cell.x + 2 + padding, y);
                 y += 2;
-              });
+                });
               doc.setTextColor(0,0,0);
             }
           }
