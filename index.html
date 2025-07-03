@@ -1157,11 +1157,13 @@
               } else if (data.column.index > 0) {
                 const ms = (data.cell.raw && data.cell.raw.matches) || [];
                 let height = 3.5; // top padding to first team name
-                ms.forEach(m => {
+                ms.forEach((m, idx) => {
                   const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
                   // 3.5 line spacing for all text lines
-                  height += 7 + dutyLines * 3.5 + 3.5 + 4 + 3.5; // team+opp, duty, gap, division, gap
+                  height += 7 + dutyLines * 3.5 + 3.5 + 4; // team+opp, duty, gap before division, division
+                  if (idx < ms.length - 1) height += 3.5; // gap between matches
                 });
+                height += 3.5; // bottom padding after last match
                 // Row height grows with content without a predefined limit
                 data.cell.styles.minCellHeight = height;
                 data.cell.text = '';
@@ -1180,7 +1182,7 @@
             if (data.section === 'body' && data.column.index > 0) {
               const ms = (data.cell.raw && data.cell.raw.matches) || [];
               let y = data.cell.y + 3.5;
-              ms.forEach(m => {
+              ms.forEach((m, idx) => {
                 doc.setFontSize(9);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
                 doc.text(`${m.team || ''} vs`, data.cell.x + 2, y);
@@ -1207,6 +1209,7 @@
                 doc.setTextColor(51, 51, 51);
                 doc.text(divText, data.cell.x + 2 + padding, y + rectH - 1);
                 y += rectH + 3.5;
+                if (idx < ms.length - 1) y += 3.5; // gap between matches
               });
               doc.setTextColor(0,0,0);
             }
