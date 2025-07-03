@@ -1157,7 +1157,7 @@
                 data.cell.styles.fontStyle = 'bold';
               } else if (data.column.index > 0) {
                 const ms = (data.cell.raw && data.cell.raw.matches) || [];
-                let height = 0;
+                let height = 1; // top padding
                 ms.forEach(m => {
                   const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
                   height += 8 + dutyLines * 4 + 1 + 4 + 1; // team+opp, duty, small gap, division, small gap
@@ -1179,7 +1179,7 @@
           didDrawCell: data => {
             if (data.section === 'body' && data.column.index > 0) {
               const ms = (data.cell.raw && data.cell.raw.matches) || [];
-              let y = data.cell.y + 2;
+              let y = data.cell.y + 1;
               ms.forEach(m => {
                 doc.setFontSize(9);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
