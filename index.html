@@ -1129,9 +1129,9 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
-        // Limit each matrix cell to a height of at most 30px to prevent overly
+        // Limit each matrix cell to a height of at most 60px to prevent overly
         // tall rows when many matches fall into the same time slot.
-        const MAX_MATRIX_CELL_HEIGHT = 30;
+        const MAX_MATRIX_CELL_HEIGHT = 60;
 
         const body = times.map(t => {
           const row = [t];
