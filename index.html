@@ -1195,12 +1195,6 @@
                   y += 3.5;
                 });
                 if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
-                if (idx < ms.length - 1) y += 3.5; // gap between matches
-              });
-              // space before divisions
-              y += 3.5;
-              ms.forEach((m, idx) => {
-                if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
                 const padding = 2;
                 const divText = m.division || '';
                 const textW = doc.getTextWidth(divText);
@@ -1212,7 +1206,7 @@
                 doc.setTextColor(51, 51, 51);
                 doc.text(divText, data.cell.x + 2 + padding, y + rectH - 1);
                 y += rectH;
-                if (idx < ms.length - 1) y += 3.5; // gap between division labels
+                if (idx < ms.length - 1) y += 3.5; // gap between matches
               });
               y += 3.5; // bottom padding
               doc.setTextColor(0,0,0);
