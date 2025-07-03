@@ -1129,6 +1129,10 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const availableHeight = pageHeight - marginTop - 10; // bottom margin
+        const rowHeightLimit = availableHeight / times.length;
+
         const body = times.map(t => {
           const row = [t];
           courts.forEach(c => {
@@ -1142,7 +1146,7 @@
           head: [["Time", ...courts]],
           body,
           margin: { top: marginTop },
-          styles: { fontSize: 9, cellPadding: 2, lineWidth: 0.1, lineColor: [0, 0, 0] },
+          styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0] },
           headStyles: { fillColor: [0, 100, 0] },
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
@@ -1156,9 +1160,10 @@
                 let height = 0;
                 ms.forEach(m => {
                   const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
-                  height += 8 + dutyLines * 4 + 2 + 4 + 2; // team+opp, duty, gap, division, gap
+                  height += 8 + dutyLines * 4 + 1 + 4 + 1; // team+opp, duty, small gap, division, small gap
                 });
-                data.cell.styles.minCellHeight = Math.max(16, height);
+                const minHeight = Math.max(14, height);
+                data.cell.styles.minCellHeight = Math.min(minHeight, rowHeightLimit);
                 data.cell.text = '';
               }
             }
@@ -1174,7 +1179,7 @@
           didDrawCell: data => {
             if (data.section === 'body' && data.column.index > 0) {
               const ms = (data.cell.raw && data.cell.raw.matches) || [];
-              let y = data.cell.y + 4;
+              let y = data.cell.y + 2;
               ms.forEach(m => {
                 doc.setFontSize(9);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
@@ -1190,7 +1195,7 @@
                   doc.text(line, data.cell.x + 2, y);
                   y += 4;
                 });
-                y += 2; // gap before division
+                y += 1; // small gap before division
                 const padding = 2;
                 const divText = m.division || '';
                 const textW = doc.getTextWidth(divText);
@@ -1201,7 +1206,7 @@
                 doc.setFontSize(7);
                 doc.setTextColor(51, 51, 51);
                 doc.text(divText, data.cell.x + 2 + padding, y + rectH - 1);
-                y += rectH + 2;
+                y += rectH + 1;
               });
               doc.setTextColor(0,0,0);
             }
