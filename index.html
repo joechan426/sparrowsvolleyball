@@ -1157,14 +1157,13 @@
                 data.cell.styles.fontStyle = 'bold';
               } else if (data.column.index > 0) {
                 const ms = (data.cell.raw && data.cell.raw.matches) || [];
-                let height = 15; // top padding to first team name
+                let height = 5; // top padding to first team name
                 ms.forEach(m => {
                   const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
                   height += 8 + dutyLines * 4 + 1 + 4 + 1; // team+opp, duty, small gap, division, small gap
                 });
-                const contentHeight = height;
-                const maxHeight = Math.min(contentHeight + 20, rowHeightLimit);
-                data.cell.styles.minCellHeight = Math.max(15, maxHeight);
+                const cellHeight = Math.min(height + 5, rowHeightLimit); // add 5px bottom padding
+                data.cell.styles.minCellHeight = cellHeight;
                 data.cell.text = '';
               }
             }
@@ -1180,7 +1179,7 @@
           didDrawCell: data => {
             if (data.section === 'body' && data.column.index > 0) {
               const ms = (data.cell.raw && data.cell.raw.matches) || [];
-              let y = data.cell.y + 15;
+              let y = data.cell.y + 5;
               ms.forEach(m => {
                 doc.setFontSize(9);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
