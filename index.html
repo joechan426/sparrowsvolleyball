@@ -1129,9 +1129,8 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const availableHeight = pageHeight - marginTop - 10; // bottom margin
-        const rowHeightLimit = availableHeight / times.length;
+        // Cell height now solely depends on the number of matches in each cell
+        // instead of being dynamically limited by the available page height.
 
         const body = times.map(t => {
           const row = [t];
@@ -1157,13 +1156,14 @@
                 data.cell.styles.fontStyle = 'bold';
               } else if (data.column.index > 0) {
                 const ms = (data.cell.raw && data.cell.raw.matches) || [];
-                let height = 3; // top padding to first team name
+                let height = 3.5; // top padding to first team name
                 ms.forEach(m => {
                   const dutyLines = doc.splitTextToSize(`Duty: ${m.dutyTeam || ''}`, data.cell.width - 4).length;
-                  height += 6 + dutyLines * 3 + 3 + 4 + 3; // team+opp, duty, gap, division, gap
+                  // 3.5 line spacing for all text lines
+                  height += 7 + dutyLines * 3.5 + 3.5 + 4 + 3.5; // team+opp, duty, gap, division, gap
                 });
-                const cellHeight = Math.min(height, rowHeightLimit);
-                data.cell.styles.minCellHeight = cellHeight;
+                // Row height grows with content without a predefined limit
+                data.cell.styles.minCellHeight = height;
                 data.cell.text = '';
               }
             }
@@ -1179,23 +1179,23 @@
           didDrawCell: data => {
             if (data.section === 'body' && data.column.index > 0) {
               const ms = (data.cell.raw && data.cell.raw.matches) || [];
-              let y = data.cell.y + 3;
+              let y = data.cell.y + 3.5;
               ms.forEach(m => {
                 doc.setFontSize(9);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
                 doc.text(`${m.team || ''} vs`, data.cell.x + 2, y);
-                y += 3;
+                y += 3.5;
                 doc.setTextColor(...hexToRgb(getTeamColor(m.opponent)));
                 doc.text(m.opponent || '', data.cell.x + 2, y);
-                y += 3;
+                y += 3.5;
                 doc.setTextColor(150, 150, 150);
                 const dutyText = `Duty: ${m.dutyTeam || ''}`;
                 const dutyLines = doc.splitTextToSize(dutyText, data.cell.width - 4);
                 dutyLines.forEach(line => {
                   doc.text(line, data.cell.x + 2, y);
-                  y += 3;
+                  y += 3.5;
                 });
-                y += 3; // gap before division
+                y += 3.5; // gap before division
                 const padding = 2;
                 const divText = m.division || '';
                 const textW = doc.getTextWidth(divText);
@@ -1206,7 +1206,7 @@
                 doc.setFontSize(7);
                 doc.setTextColor(51, 51, 51);
                 doc.text(divText, data.cell.x + 2 + padding, y + rectH - 1);
-                y += rectH + 3;
+                y += rectH + 3.5;
               });
               doc.setTextColor(0,0,0);
             }
