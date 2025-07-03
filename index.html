@@ -1129,8 +1129,9 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
-        // Limit each matrix cell to a height between 25px and 40px when
-        // generating the landscape matrix table.
+        // Body cells are limited to a height between 25px and 40px when
+        // generating the landscape matrix table. The first row (court headers)
+        // is allowed to shrink to the minimum height.
         const MAX_MATRIX_CELL_HEIGHT = 40;
 
         const body = times.map(t => {
@@ -1146,8 +1147,9 @@
           head: [["Time", ...courts]],
           body,
           margin: { top: marginTop },
-          styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0], minCellHeight: 25, maxCellHeight: MAX_MATRIX_CELL_HEIGHT },
-          headStyles: { fillColor: [0, 100, 0] },
+          styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0] },
+          headStyles: { fillColor: [0, 100, 0], minCellHeight: 0 },
+          bodyStyles: { minCellHeight: 25, maxCellHeight: MAX_MATRIX_CELL_HEIGHT },
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
           didParseCell: data => {
