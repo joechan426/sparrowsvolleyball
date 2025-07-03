@@ -1129,9 +1129,9 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
-        // Limit each matrix cell to a height between 50px and 80px when
+        // Limit each matrix cell to a height between 30px and 60px when
         // generating the landscape matrix table.
-        const MAX_MATRIX_CELL_HEIGHT = 80;
+        const MAX_MATRIX_CELL_HEIGHT = 60;
 
         const body = times.map(t => {
           const row = [t];
@@ -1146,7 +1146,7 @@
           head: [["Time", ...courts]],
           body,
           margin: { top: marginTop },
-          styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0], minCellHeight: 50, maxCellHeight: MAX_MATRIX_CELL_HEIGHT },
+          styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0], minCellHeight: 30, maxCellHeight: MAX_MATRIX_CELL_HEIGHT },
           headStyles: { fillColor: [0, 100, 0] },
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
@@ -1157,7 +1157,7 @@
                 data.cell.styles.fontStyle = 'bold';
               } else if (data.column.index > 0) {
                 // Cap cell height for matrix table
-                data.cell.styles.minCellHeight = 50;
+                data.cell.styles.minCellHeight = 30;
                 data.cell.styles.maxCellHeight = MAX_MATRIX_CELL_HEIGHT;
                 data.cell.text = '';
               }
