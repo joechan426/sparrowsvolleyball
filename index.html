@@ -1129,8 +1129,9 @@
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
         const courts = Array.from(new Set(matches.map(m => m.location))).sort();
 
-        // Cell height is fixed to 15px for every slot in the matrix table so
-        // all rows have a consistent height regardless of their content.
+        // Limit each matrix cell to a height of at most 30px to prevent overly
+        // tall rows when many matches fall into the same time slot.
+        const MAX_MATRIX_CELL_HEIGHT = 30;
 
         const body = times.map(t => {
           const row = [t];
@@ -1145,7 +1146,7 @@
           head: [["Time", ...courts]],
           body,
           margin: { top: marginTop },
-          styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0], minCellHeight: 15 },
+          styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0], minCellHeight: 15, maxCellHeight: MAX_MATRIX_CELL_HEIGHT },
           headStyles: { fillColor: [0, 100, 0] },
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
@@ -1155,8 +1156,9 @@
                 data.cell.styles.fontSize = 11;
                 data.cell.styles.fontStyle = 'bold';
               } else if (data.column.index > 0) {
-                // Fixed cell height for matrix table
+                // Cap cell height for matrix table
                 data.cell.styles.minCellHeight = 15;
+                data.cell.styles.maxCellHeight = MAX_MATRIX_CELL_HEIGHT;
                 data.cell.text = '';
               }
             }
@@ -1174,25 +1176,31 @@
               const ms = (data.cell.raw && data.cell.raw.matches) || [];
               let y = data.cell.y + 3.5;
               ms.forEach((m, idx) => {
+                if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
                 doc.setFontSize(9);
                 doc.setTextColor(...hexToRgb(getTeamColor(m.team)));
                 doc.text(`${m.team || ''} vs`, data.cell.x + 2, y);
                 y += 3.5;
+                if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
                 doc.setTextColor(...hexToRgb(getTeamColor(m.opponent)));
                 doc.text(m.opponent || '', data.cell.x + 2, y);
                 y += 3.5;
+                if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
                 doc.setTextColor(150, 150, 150);
                 const dutyText = `Duty: ${m.dutyTeam || ''}`;
                 const dutyLines = doc.splitTextToSize(dutyText, data.cell.width - 4);
                 dutyLines.forEach(line => {
+                  if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
                   doc.text(line, data.cell.x + 2, y);
                   y += 3.5;
                 });
+                if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
                 if (idx < ms.length - 1) y += 3.5; // gap between matches
               });
               // space before divisions
               y += 3.5;
               ms.forEach((m, idx) => {
+                if (y > data.cell.y + MAX_MATRIX_CELL_HEIGHT) return;
                 const padding = 2;
                 const divText = m.division || '';
                 const textW = doc.getTextWidth(divText);
