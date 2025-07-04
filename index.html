@@ -593,7 +593,7 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
-      let html = '<div class="auto-renew-note">Table auto renew every 30 sec</div>' +
+      let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
@@ -613,7 +613,8 @@
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
       });
       html += '</tbody></table>';
-
+      html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
+      
       html += '<div class="match-days">';
       const schedule = liveResults.schedule || {};
       for (const date in schedule) {
@@ -740,7 +741,7 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
-      let html = '<div class="auto-renew-note">Table auto renew every 30 sec</div>' +
+      let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
@@ -760,6 +761,7 @@
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
       });
       html += '</tbody></table>';
+      html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
 
       html += '<div class="match-days">';
       for (const date in schedule) {
