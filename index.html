@@ -22,6 +22,27 @@
       color: #666;
       font-size: 14px;
     }
+    .site-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+    .header-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
     .filters {
       margin-bottom: 20px;
       display: flex;
@@ -310,11 +331,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <h1>Sparrowsvolleyball Challenger League & SML Season 4 Schedule</h1>
-  <p class="description">
-  SAT 3 May to 5 July 2025, 6-9pm, Camellia Indoor Sports Centre<br>
-  DUTY: Min. of 2 PEOPLE REQUIRED (1st Ref + Scorer)
-  </p>
+  <div class="site-header">
+    <div class="logo-group">
+      <img src="content/img/sparrow.png" alt="Sparrow" class="logo" />
+      <img src="content/img/logo.png" alt="Logo" class="logo" />
+    </div>
+    <div class="header-text">
+      <h1>Sparrowsvolleyball Challenger League & SML Season 4 Schedule</h1>
+      <p class="description">
+      SAT 3 May to 5 July 2025, 6-9pm, Camellia Indoor Sports Centre<br>
+      DUTY: Min. of 2 PEOPLE REQUIRED (1st Ref + Scorer)
+      </p>
+    </div>
+  </div>
   <div class='tab-bar'>
     <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
     <button id='liveTab' onclick="showTab('live')">Live results</button>
