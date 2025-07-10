@@ -225,14 +225,23 @@
     }
     .division-tabs {
       margin-bottom: 15px;
+    }
+    .division-row {
       display: flex;
       gap: 10px;
+      margin-bottom: 5px;
     }
     .division-tabs button {
       color: #fff;
     }
-    .division-tabs button.active {
+    .division-row button.active {
       background: #008040;
+    }
+    .finals-row button {
+      background: #0d47a1;
+    }
+    .finals-row button.active {
+      background: #002171;
     }
     .ranking-table {
       width: 100%;
@@ -326,6 +335,39 @@
       font-weight: 600;
     }
 
+    .bracket {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 10px;
+    }
+    .bracket .round {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      align-items: center;
+    }
+    .bracket .match {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .bracket .team-block {
+      text-align: center;
+      margin: 4px 0;
+    }
+    .bracket .score-lines {
+      font-size: 12px;
+      line-height: 1.1;
+    }
+    .bracket .set-count {
+      font-size: 20px;
+      font-weight: bold;
+      color: #0d47a1;
+      margin: 4px 0;
+    }
+
     @media (max-width: 600px) {
       .site-header {
         flex-direction: column;
@@ -367,7 +409,10 @@
   <div id="results"></div>
   </div>
   <div id="liveResultsSection" style="display:none;">
-    <div id="divisionTabs" class="division-tabs"></div>
+    <div id="divisionTabs" class="division-tabs">
+      <div id="divisionRowRegular" class="division-row"></div>
+      <div id="divisionRowFinals" class="division-row finals-row"></div>
+    </div>
     <button id="combineViewBtn">Combine Divisions Table View</button>
     <div id="divisionContent"></div>
   </div>
@@ -599,8 +644,10 @@
       if (!liveResults.divisions) {
         liveResults.divisions = computeStandings(liveResults.schedule);
       }
-      const tabs = document.getElementById('divisionTabs');
-      tabs.innerHTML = '';
+      const regRow = document.getElementById('divisionRowRegular');
+      const finRow = document.getElementById('divisionRowFinals');
+      regRow.innerHTML = '';
+      finRow.innerHTML = '';
       const divisions = Object.keys(liveResults.divisions || {});
       if (!divisions.length) return;
       const combineBtn = document.getElementById('combineViewBtn');
@@ -611,7 +658,7 @@
         btn.dataset.division = div;
         if ((currentDivision ? div === currentDivision : idx === 0)) btn.classList.add('active');
         btn.onclick = () => showDivision(div);
-        tabs.appendChild(btn);
+        if (/finals/i.test(div)) finRow.appendChild(btn); else regRow.appendChild(btn);
       });
       assignTeamColors();
       if (!currentDivision) currentDivision = divisions[0];
@@ -622,7 +669,57 @@
       }
     }
 
-    function showDivision(div) {
+    function buildFinalsBracket(div) {
+      const schedule = liveResults.schedule || {};
+      const matches = [];
+      for (const date in schedule) {
+        (schedule[date] || []).forEach(m => { if (m.division === div) matches.push(m); });
+      }
+      const renderMatch = (match) => {
+        if (!match) return '';
+        const aScores = (match.scores && match.scores.a) || [];
+        const bScores = (match.scores && match.scores.b) || [];
+        const len = Math.max(aScores.length, bScores.length);
+        let swA = 0, swB = 0;
+        for (let i = 0; i < len; i++) {
+          const sa = aScores[i];
+          const sb = bScores[i];
+          if (sa !== undefined && sb !== undefined) {
+            const diff = Math.abs(sa - sb);
+            const isLeague = /league/i.test(match.division);
+            const minPts = isLeague ? 12 : 8;
+            if ((sa >= minPts || sb >= minPts) && diff >= 2) {
+              if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
+            }
+          }
+        }
+        const keyA = normalizeName(match.team);
+        const keyB = normalizeName(match.opponent);
+        const colorA = getTeamColor(match.team);
+        const colorB = getTeamColor(match.opponent);
+        const lines = [];
+        for (let i = 0; i < len; i++) {
+          const sa = aScores[i];
+          const sb = bScores[i];
+          if (sa === undefined || sb === undefined) continue;
+          lines.push(`${sa}-${sb}`);
+        }
+        const scoreHtml = lines.map(s => `<div>${s}</div>`).join('');
+        return `<div class="match"><div class="team-block"><span class="team-color team-entry" data-team="${keyA}" style="color:${colorA}">${match.team}</span><div class="score-lines">${scoreHtml}</div></div><div class="set-count">${swA}-${swB}</div><div class="team-block"><span class="team-color team-entry" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span><div class="score-lines">${scoreHtml}</div></div></div>`;
+      };
+
+      const htmlParts = ['<div class="bracket">'];
+      htmlParts.push('<div class="round semifinals">');
+      htmlParts.push(renderMatch(matches[0]));
+      htmlParts.push(renderMatch(matches[1]));
+      htmlParts.push('</div>');
+      htmlParts.push('<div class="round final">');
+      htmlParts.push(renderMatch(matches[matches.length - 1]));
+      htmlParts.push('</div></div>');
+      return htmlParts.join('');
+    }
+
+  function showDivision(div) {
       const changed = currentDivision !== div;
       currentDivision = div;
       combinedDivisions = null;
@@ -630,6 +727,20 @@
       const data = (liveResults.divisions || {})[div];
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
+
+      if (/finals/i.test(div)) {
+        let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
+          buildFinalsBracket(div);
+        container.innerHTML = html;
+        document.querySelectorAll('#divisionTabs button').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`#divisionTabs button[data-division="${div}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+        document.querySelectorAll('#divisionContent .team-entry').forEach(el => {
+          el.addEventListener('click', () => highlightTeam(el.dataset.team));
+        });
+        if (highlightedTeamKey) highlightTeam(highlightedTeamKey);
+        return;
+      }
 
       let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
@@ -707,8 +818,7 @@
 
       container.innerHTML = html;
 
-      const tabs = document.getElementById('divisionTabs').children;
-      for (const btn of tabs) btn.classList.remove('active');
+      document.querySelectorAll('#divisionTabs button').forEach(btn => btn.classList.remove('active'));
       const activeBtn = document.querySelector(`#divisionTabs button[data-division="${div}"]`);
       if (activeBtn) activeBtn.classList.add('active');
 
