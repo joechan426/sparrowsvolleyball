@@ -337,15 +337,15 @@
 
     .bracket {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 40px;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
       margin-bottom: 10px;
     }
     .bracket .round {
       display: flex;
       flex-direction: column;
-      gap: 40px;
+      gap: 20px;
       align-items: center;
     }
     .bracket .match {
@@ -366,6 +366,16 @@
       font-weight: bold;
       color: #0d47a1;
       margin: 4px 0;
+    }
+    .bracket .line {
+      width: 2px;
+      height: 30px;
+      background: #666;
+    }
+    .bracket .champion {
+      font-weight: bold;
+      font-size: 22px;
+      color: #006400;
     }
 
     @media (max-width: 600px) {
@@ -676,15 +686,15 @@
       for (const date in schedule) {
         (schedule[date] || []).forEach(m => { if (m.division === div) matches.push(m); });
       }
-      const renderMatch = (match) => {
-        if (!match) return '';
-        const aScores = (match.scores && match.scores.a) || [];
-        const bScores = (match.scores && match.scores.b) || [];
-        const len = Math.max(aScores.length, bScores.length);
+
+      const calcSetWins = (match) => {
+        const a = (match.scores && match.scores.a) || [];
+        const b = (match.scores && match.scores.b) || [];
+        const len = Math.max(a.length, b.length);
         let swA = 0, swB = 0;
         for (let i = 0; i < len; i++) {
-          const sa = aScores[i];
-          const sb = bScores[i];
+          const sa = a[i];
+          const sb = b[i];
           if (sa !== undefined && sb !== undefined) {
             const diff = Math.abs(sa - sb);
             const isLeague = /league/i.test(match.division);
@@ -694,11 +704,28 @@
             }
           }
         }
+        return { swA, swB };
+      };
+
+      const winner = (match) => {
+        if (!match) return null;
+        const { swA, swB } = calcSetWins(match);
+        if (swA > swB) return match.team;
+        if (swB > swA) return match.opponent;
+        return null;
+      };
+
+      const renderMatch = (match) => {
+        if (!match) return '';
+        const { swA, swB } = calcSetWins(match);
+        const aScores = (match.scores && match.scores.a) || [];
+        const bScores = (match.scores && match.scores.b) || [];
         const keyA = normalizeName(match.team);
         const keyB = normalizeName(match.opponent);
         const colorA = getTeamColor(match.team);
         const colorB = getTeamColor(match.opponent);
         const lines = [];
+        const len = Math.max(aScores.length, bScores.length);
         for (let i = 0; i < len; i++) {
           const sa = aScores[i];
           const sb = bScores[i];
@@ -709,14 +736,29 @@
         return `<div class="match"><div class="team-block"><span class="team-color team-entry" data-team="${keyA}" style="color:${colorA}">${match.team}</span><div class="score-lines">${scoreHtml}</div></div><div class="set-count">${swA}-${swB}</div><div class="team-block"><span class="team-color team-entry" data-team="${keyB}" style="color:${colorB}">${match.opponent}</span><div class="score-lines">${scoreHtml}</div></div></div>`;
       };
 
+      const semi1 = matches[0];
+      const semi2 = matches[1];
+      const finalMatch = matches[matches.length - 1];
+
+      const w1 = winner(semi1);
+      const w2 = winner(semi2);
+      const finalTeamA = finalMatch ? (w1 || finalMatch.team) : w1;
+      const finalTeamB = finalMatch ? (w2 || finalMatch.opponent) : w2;
+      const finalObj = finalMatch ? { ...finalMatch, team: finalTeamA, opponent: finalTeamB } : null;
+      const champ = finalObj ? winner(finalObj) : null;
+
       const htmlParts = ['<div class="bracket">'];
-      htmlParts.push('<div class="round semifinals">');
-      htmlParts.push(renderMatch(matches[0]));
-      htmlParts.push(renderMatch(matches[1]));
-      htmlParts.push('</div>');
+      if (champ) htmlParts.push(`<div class="champion">${champ}</div>`);
+      htmlParts.push('<div class="line"></div>');
       htmlParts.push('<div class="round final">');
-      htmlParts.push(renderMatch(matches[matches.length - 1]));
-      htmlParts.push('</div></div>');
+      htmlParts.push(renderMatch(finalObj));
+      htmlParts.push('</div>');
+      htmlParts.push('<div class="line"></div>');
+      htmlParts.push('<div class="round semifinals">');
+      htmlParts.push(renderMatch(semi1));
+      htmlParts.push(renderMatch(semi2));
+      htmlParts.push('</div>');
+      htmlParts.push('</div>');
       return htmlParts.join('');
     }
 
