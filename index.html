@@ -651,7 +651,8 @@
       const divisions = Object.keys(liveResults.divisions || {});
       if (!divisions.length) return;
       const combineBtn = document.getElementById('combineViewBtn');
-      combineBtn.style.display = divisions.length > 1 ? 'inline-block' : 'none';
+      const nonFinalDivs = divisions.filter(d => !/finals/i.test(d));
+      combineBtn.style.display = nonFinalDivs.length > 1 ? 'inline-block' : 'none';
       divisions.forEach((div, idx) => {
         const btn = document.createElement('button');
         btn.textContent = div;
