@@ -378,6 +378,22 @@
       color: #006400;
     }
 
+    .bracket.horizontal {
+      flex-direction: row;
+      align-items: center;
+    }
+    .bracket.horizontal .round {
+      align-items: flex-start;
+    }
+    .bracket.horizontal .match {
+      align-items: flex-start;
+    }
+    .bracket.horizontal .line {
+      width: 40px;
+      height: 2px;
+      background: #666;
+    }
+
     @media (max-width: 600px) {
       .site-header {
         flex-direction: column;
@@ -747,17 +763,17 @@
       const finalObj = finalMatch ? { ...finalMatch, team: finalTeamA, opponent: finalTeamB } : null;
       const champ = finalObj ? winner(finalObj) : null;
 
-      const htmlParts = ['<div class="bracket">'];
-      if (champ) htmlParts.push(`<div class="champion">${champ}</div>`);
+      const htmlParts = ['<div class="bracket horizontal">'];
+      htmlParts.push('<div class="round semifinals">');
+      htmlParts.push(renderMatch(semi1));
+      htmlParts.push(renderMatch(semi2));
+      htmlParts.push('</div>');
       htmlParts.push('<div class="line"></div>');
       htmlParts.push('<div class="round final">');
       htmlParts.push(renderMatch(finalObj));
       htmlParts.push('</div>');
       htmlParts.push('<div class="line"></div>');
-      htmlParts.push('<div class="round semifinals">');
-      htmlParts.push(renderMatch(semi1));
-      htmlParts.push(renderMatch(semi2));
-      htmlParts.push('</div>');
+      if (champ) htmlParts.push(`<div class="champion">${champ}</div>`);
       htmlParts.push('</div>');
       return htmlParts.join('');
     }
