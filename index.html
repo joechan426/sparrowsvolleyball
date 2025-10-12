@@ -6,44 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>SparrowsVolleyball</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Montserrat:wght@300;500;700&display=swap');
-
-    :root {
-      --bg-dark: #0b0313;
-      --bg-accent: rgba(75, 0, 130, 0.65);
-      --text-primary: #f6f1ff;
-      --text-secondary: #d9c8ff;
-      --accent-orange: #ff7518;
-      --accent-purple: #8a2be2;
-      --accent-green: #64ffda;
-      --panel-bg: rgba(24, 10, 34, 0.85);
-      --panel-border: rgba(255, 117, 24, 0.6);
-    }
-
     body {
-      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(circle at 20% 20%, rgba(255, 117, 24, 0.12), transparent 45%),
-                  radial-gradient(circle at 80% 10%, rgba(138, 43, 226, 0.18), transparent 50%),
-                  linear-gradient(135deg, var(--bg-dark), #1b0824 60%, #2b0f33);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      background: #fff;
       margin: 0;
       padding: 20px;
-      color: var(--text-primary);
-      min-height: 100vh;
-      background-attachment: fixed;
+      color: #333;
     }
     h1 {
-      font-family: 'Creepster', cursive;
-      font-size: 36px;
+      font-size: 28px;
       margin-bottom: 5px;
-      color: var(--accent-orange);
-      letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(255, 117, 24, 0.8), 4px 4px 0 rgba(0, 0, 0, 0.8);
+      color: #058705;
+      text-shadow: 2px 2px 4px #004d00;
     }
     p.description {
       margin-top: 0;
-      color: var(--text-secondary);
-      font-size: 15px;
-      line-height: 1.5;
+      color: #666;
+      font-size: 14px;
     }
     .site-header {
       display: flex;
@@ -77,66 +56,54 @@
       font-size: 16px;
       border-radius: 6px;
     }
-    select {
-      background: rgba(0, 0, 0, 0.45);
-      color: var(--text-primary);
-      border: 1px solid var(--accent-purple);
-    }
     button {
-      background: var(--accent-purple);
-      color: var(--text-primary);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #006400;
+      color: #fff;
+      border: none;
       cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     button:hover {
-      background: var(--accent-orange);
-      box-shadow: 0 0 12px rgba(255, 117, 24, 0.6);
-      transform: translateY(-1px);
+      background: #008040;
     }
     button:focus,
     button:active,
     button.active {
-      outline: 2px solid var(--accent-green);
-      box-shadow: 0 0 12px rgba(100, 255, 218, 0.6);
+      outline: 2px solid #39ff14;
+      box-shadow: 0 0 8px #39ff14;
     }
     .card {
       border: 1px solid transparent;
       padding: 16px;
       margin-bottom: 15px;
       border-radius: 12px;
-      background: var(--panel-bg);
-      border-image: linear-gradient(135deg, rgba(255, 117, 24, 0.7), rgba(138, 43, 226, 0.6)) 1;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(4px);
+      background: rgba(255,255,255,0.8);
+      border-image: linear-gradient(45deg, #006400, #00a86b) 1;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .team {
       font-size: 22px;
-      font-weight: 700;
-      color: var(--accent-orange);
-      text-shadow: 0 0 6px rgba(255, 117, 24, 0.8);
+      font-weight: 600;
+      color: #006400;
     }
     .time {
       font-size: 14px;
       margin-top: 4px;
-      color: var(--accent-green);
+      color: #1565c0;
     }
     .location {
       font-size: 14px;
       margin-top: 4px;
-      color: var(--accent-purple);
+      color: #ff7043;
     }
     .duty {
       font-size: 14px;
       margin-top: 4px;
-      color: var(--text-secondary);
+      color: #8e24aa;
     }
     .match-date {
       font-size: 14px;
       margin-top: 4px;
-      color: var(--accent-orange);
+      color: #006400;
     }
     .popup, .overlay {
       position: fixed;
@@ -154,15 +121,14 @@
       z-index: 101;
     }
     .popup-content {
-      background: rgba(19, 8, 29, 0.95);
+      background: rgba(255,255,255,0.95);
       padding: 20px;
       border-radius: 12px;
       max-width: 400px;
       width: 100%;
-      box-shadow: 0 25px 40px rgba(0,0,0,0.45);
+      box-shadow: 0 2px 15px rgba(0,0,0,0.2);
       border: 1px solid transparent;
-      border-image: linear-gradient(135deg, rgba(255, 117, 24, 0.7), rgba(100, 255, 218, 0.6)) 1;
-      color: var(--text-primary);
+      border-image: linear-gradient(45deg, #006400, #00a86b) 1;
     }
     .popup-content input[type="tel"],
     .popup-content input[type="text"] {
@@ -210,25 +176,23 @@
       padding: 2px 5px;
       border-radius: 4px;
       margin: 0 2px;
-      color: var(--accent-orange);
-      background: rgba(255, 117, 24, 0.15);
-      border: 1px solid rgba(255, 117, 24, 0.4);
-      box-shadow: 0 0 6px rgba(255, 117, 24, 0.35);
+      color: #006400;
+      background: #e8f5e9;
     }
     .team-entry { cursor: pointer; }
     .team-color.highlight {
-      background: rgba(100, 255, 218, 0.2);
-      outline: 2px solid var(--accent-green);
-      box-shadow: 0 0 8px rgba(100, 255, 218, 0.6);
+      background: #fff59d;
+      outline: 2px solid #39ff14;
+      box-shadow: 0 0 6px #39ff14;
     }
     .ranking-table tr.highlight td {
-      background: rgba(100, 255, 218, 0.18);
-      box-shadow: 0 0 8px rgba(100, 255, 218, 0.6);
+      background: #fffde7;
+      box-shadow: 0 0 6px #39ff14;
     }
     .division {
       display: inline-block;
-      background: rgba(138, 43, 226, 0.35);
-      color: var(--text-primary);
+      background: #e0e0e0;
+      color: #333;
       padding: 2px 8px;
       border-radius: 16px;
       font-size: 14px;
@@ -240,8 +204,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(8,0,14,0.75);
-      color: var(--text-primary);
+      background: rgba(0,0,0,0.4);
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -256,11 +220,10 @@
     .tab-bar button {
       padding: 12px 18px;
       font-size: 18px;
-      border-bottom: 4px solid var(--accent-orange);
+      border-bottom: 4px solid #004d00;
     }
     .tab-bar button.active {
-      background: var(--accent-orange);
-      color: #0b0313;
+      background: #008040;
     }
     .division-tabs {
       margin-bottom: 15px;
@@ -271,40 +234,37 @@
       margin-bottom: 5px;
     }
     .division-tabs button {
-      color: var(--text-primary);
+      color: #fff;
     }
     .division-row button.active {
-      background: var(--accent-orange);
-      color: #0b0313;
+      background: #008040;
     }
     .finals-row button {
-      background: #3813a0;
+      background: #0d47a1;
     }
     .finals-row button.active {
-      background: #291068;
+      background: #002171;
     }
     .ranking-table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 10px;
       font-size: 14px;
-      background: var(--panel-bg);
-      color: var(--text-primary);
     }
     .ranking-table th {
-      background: rgba(255, 117, 24, 0.85);
-      color: #0b0313;
+      background: #006400;
+      color: #fff;
       padding: 6px;
     }
     .ranking-table td {
-      border: 1px solid rgba(138, 43, 226, 0.4);
+      border: 1px solid #ccc;
       padding: 6px;
       text-align: center;
     }
     .auto-renew-note {
       font-size: 14px;
       margin-bottom: 5px;
-      color: var(--text-secondary);
+      color: #666;
     }
     .match-days {
       display: flex;
@@ -319,9 +279,7 @@
     .date-header {
       font-weight: 600;
       margin-bottom: 6px;
-      color: var(--accent-orange);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      color: #006400;
     }
     .match-result {
       width: 100%;
@@ -354,7 +312,7 @@
       align-items: center;
       font-size: 20px;
       font-weight: bold;
-      color: var(--accent-green);
+      color: #0d47a1;
       white-space: nowrap;
     }
     .set-table {
@@ -408,19 +366,18 @@
     .bracket .set-count {
       font-size: 20px;
       font-weight: bold;
-      color: var(--accent-green);
+      color: #0d47a1;
       margin: 4px 0;
     }
     .bracket .line {
       width: 2px;
       height: 30px;
-      background: rgba(255,255,255,0.2);
+      background: #666;
     }
     .bracket .champion {
       font-weight: bold;
       font-size: 22px;
-      color: var(--accent-orange);
-      text-shadow: 0 0 8px rgba(255, 117, 24, 0.8);
+      color: #006400;
     }
 
     .bracket.horizontal {
