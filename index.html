@@ -235,6 +235,34 @@
       font-size: 20px;
       z-index: 200;
     }
+    .loading-overlay .loading-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .loading-overlay .loading-spinner {
+      width: 72px;
+      height: 72px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 4px 10px rgba(240, 253, 244, 0.45));
+    }
+    .loading-overlay .loading-spinner svg {
+      width: 100%;
+      height: 100%;
+      animation: volleyball-spin 1.2s linear infinite;
+    }
+    .loading-overlay .loading-text {
+      font-size: 20px;
+      letter-spacing: 0.5px;
+    }
+    @keyframes volleyball-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
     .tab-bar {
       margin-bottom: 15px;
       display: flex;
@@ -500,7 +528,39 @@
         overlay.className = "loading-overlay";
         document.body.appendChild(overlay);
       }
-      overlay.textContent = message;
+      overlay.innerHTML = "";
+      const content = document.createElement("div");
+      content.className = "loading-content";
+
+      const spinner = document.createElement("div");
+      spinner.className = "loading-spinner";
+      spinner.setAttribute("aria-hidden", "true");
+      spinner.innerHTML = `
+        <svg class="volleyball-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <clipPath id="volleyball-swoosh">
+              <circle cx="32" cy="32" r="28" />
+            </clipPath>
+          </defs>
+          <g clip-path="url(#volleyball-swoosh)">
+            <circle cx="32" cy="32" r="28" fill="#FFD54F" />
+            <path fill="#1565C0" d="M8 22 A 24 24 0 0 1 32 6 A 24 24 0 0 1 56 18 Q 44 22 32 22 Q 20 22 8 22 Z" />
+            <path fill="#0D47A1" d="M10 30 Q 6 40 10 52 Q 14 60 22 62 Q 26 52 26 40 Q 26 30 20 22 Q 14 25 10 30 Z" />
+            <path fill="#1565C0" d="M56 42 Q 52 52 44 58 Q 36 64 26 62 Q 34 54 44 50 Q 52 48 60 50 Z" />
+            <path fill="#FFF8E1" d="M53 9 C 58 15 61 22 61 30 C 61 34 60 38 58 42 C 50 38 41 36 32 36 C 23 36 14 38 6 42 C 9 32 15 24 23 18 C 32 11 42 8 53 9 Z" />
+            <path fill="#FFF8E1" d="M11 55 C 6 49 3 42 3 34 C 3 30 4 26 6 22 C 14 26 23 28 32 28 C 41 28 50 26 58 22 C 55 32 49 40 41 46 C 32 53 22 56 11 55 Z" />
+          </g>
+          <circle cx="32" cy="32" r="28" fill="none" stroke="#F9A825" stroke-width="2" />
+        </svg>
+      `;
+
+      const text = document.createElement("div");
+      text.className = "loading-text";
+      text.textContent = message;
+
+      content.appendChild(spinner);
+      content.appendChild(text);
+      overlay.appendChild(content);
     }
 
     function hideLoading() {
