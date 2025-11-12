@@ -705,10 +705,12 @@
       finRow.innerHTML = '';
       const divisions = Object.keys(liveResults.divisions || {});
       if (!divisions.length) return;
+      const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+      const sortedDivisions = divisions.slice().sort(collator.compare);
       const combineBtn = document.getElementById('combineViewBtn');
-      const nonFinalDivs = divisions.filter(d => !/finals/i.test(d));
+      const nonFinalDivs = sortedDivisions.filter(d => !/finals/i.test(d));
       combineBtn.style.display = nonFinalDivs.length > 1 ? 'inline-block' : 'none';
-      divisions.forEach((div, idx) => {
+      sortedDivisions.forEach((div, idx) => {
         const btn = document.createElement('button');
         btn.textContent = div;
         btn.dataset.division = div;
@@ -717,7 +719,7 @@
         if (/finals/i.test(div)) finRow.appendChild(btn); else regRow.appendChild(btn);
       });
       assignTeamColors();
-      if (!currentDivision) currentDivision = divisions[0];
+      if (!currentDivision) currentDivision = sortedDivisions[0];
       if (combinedDivisions) {
         showCombinedDivisions(combinedDivisions);
       } else {
