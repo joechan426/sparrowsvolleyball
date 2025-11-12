@@ -662,6 +662,34 @@
       return result;
     }
 
+    function annotateDivisionMatchOrder(schedule) {
+      const counters = {};
+      const dates = Object.keys(schedule || {});
+      dates.forEach(date => {
+        (schedule[date] || []).forEach(match => {
+          if (!match || typeof match !== 'object') return;
+          const div = match.division;
+          if (!div) return;
+          if (typeof counters[div] !== 'number') counters[div] = 0;
+          match.__divisionOrder = counters[div]++;
+        });
+      });
+    }
+
+    function sortMatchesByDivisionOrder(a, b) {
+      const orderA = (a && typeof a.__divisionOrder === 'number')
+        ? a.__divisionOrder
+        : Number.MAX_SAFE_INTEGER;
+      const orderB = (b && typeof b.__divisionOrder === 'number')
+        ? b.__divisionOrder
+        : Number.MAX_SAFE_INTEGER;
+      if (orderA !== orderB) return orderA - orderB;
+      const rowA = (a && typeof a.rowIndex === 'number') ? a.rowIndex : Number.MAX_SAFE_INTEGER;
+      const rowB = (b && typeof b.rowIndex === 'number') ? b.rowIndex : Number.MAX_SAFE_INTEGER;
+      if (rowA !== rowB) return rowA - rowB;
+      return 0;
+    }
+
     async function fetchSchedule() {
       const res = await fetch(apiUrl, { cache: "no-store" });
       const json = await res.json();
@@ -699,6 +727,7 @@
       if (!liveResults.divisions) {
         liveResults.divisions = computeStandings(liveResults.schedule);
       }
+      annotateDivisionMatchOrder(liveResults.schedule);
       const regRow = document.getElementById('divisionRowRegular');
       const finRow = document.getElementById('divisionRowFinals');
       regRow.innerHTML = '';
@@ -730,9 +759,11 @@
     function buildFinalsBracket(div) {
       const schedule = liveResults.schedule || {};
       const matches = [];
-      for (const date in schedule) {
+      const scheduleDates = Object.keys(schedule || {});
+      scheduleDates.forEach(date => {
         (schedule[date] || []).forEach(m => { if (m.division === div) matches.push(m); });
-      }
+      });
+      matches.sort(sortMatchesByDivisionOrder);
 
       const calcSetWins = (match) => {
         const a = (match.scores && match.scores.a) || [];
@@ -856,11 +887,27 @@
       
       html += '<div class="match-days">';
       const schedule = liveResults.schedule || {};
-      for (const date in schedule) {
+      const scheduleDates = Object.keys(schedule || {});
+      const dateEntries = [];
+      scheduleDates.forEach((date, idx) => {
         const matches = (schedule[date] || []).filter(m => m.division === div);
-        if (!matches.length) continue;
-        html += `<div class="card match-day"><div class="date-header">${date}</div>`;
-        matches.forEach(match => {
+        if (!matches.length) return;
+        const sortedMatches = matches.slice().sort(sortMatchesByDivisionOrder);
+        const orders = sortedMatches
+          .map(m => (typeof m.__divisionOrder === 'number' ? m.__divisionOrder : null))
+          .filter(v => v !== null);
+        const minOrder = orders.length ? Math.min(...orders) : Number.MAX_SAFE_INTEGER;
+        dateEntries.push({ date, matches: sortedMatches, minOrder, dateIdx: idx });
+      });
+      dateEntries.sort((a, b) => {
+        const aOrder = a.minOrder;
+        const bOrder = b.minOrder;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.dateIdx - b.dateIdx;
+      });
+      dateEntries.forEach(entry => {
+        html += `<div class="card match-day"><div class="date-header">${entry.date}</div>`;
+        entry.matches.forEach(match => {
           const aScores = (match.scores && match.scores.a) || [];
           const bScores = (match.scores && match.scores.b) || [];
           const len = Math.max(aScores.length, bScores.length);
@@ -903,7 +950,7 @@
           `</div>`;
         });
         html += '</div>';
-      }
+      });
       html += '</div>';
 
       container.innerHTML = html;
@@ -1002,10 +1049,26 @@
       html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
 
       html += '<div class="match-days">';
-      for (const date in schedule) {
-        const matches = schedule[date];
-        html += `<div class="card match-day"><div class="date-header">${date}</div>`;
-        matches.forEach(match => {
+      const scheduleDates = Object.keys(schedule || {});
+      const dateEntries = [];
+      scheduleDates.forEach((date, idx) => {
+        const matches = (schedule[date] || []).slice().sort(sortMatchesByDivisionOrder);
+        if (!matches.length) return;
+        const orders = matches
+          .map(m => (typeof m.__divisionOrder === 'number' ? m.__divisionOrder : null))
+          .filter(v => v !== null);
+        const minOrder = orders.length ? Math.min(...orders) : Number.MAX_SAFE_INTEGER;
+        dateEntries.push({ date, matches, minOrder, dateIdx: idx });
+      });
+      dateEntries.sort((a, b) => {
+        const aOrder = a.minOrder;
+        const bOrder = b.minOrder;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.dateIdx - b.dateIdx;
+      });
+      dateEntries.forEach(entry => {
+        html += `<div class="card match-day"><div class="date-header">${entry.date}</div>`;
+        entry.matches.forEach(match => {
           const aScores = (match.scores && match.scores.a) || [];
           const bScores = (match.scores && match.scores.b) || [];
           const len = Math.max(aScores.length, bScores.length);
@@ -1047,7 +1110,7 @@
             `</div>`;
         });
         html += '</div>';
-      }
+      });
       html += '</div>';
 
       container.innerHTML = html;
