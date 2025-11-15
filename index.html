@@ -1272,7 +1272,7 @@
       const popup = document.createElement("div");
       popup.className = "popup";
 
-      const setLabels = ["1st", "2nd", "3rd", "4th", "5th"];
+      const setLabels = ["1st", "2nd", "3rd"];
       const headerRow = `
         <div class="set-row">
           <span class="label-column"></span>
@@ -1338,7 +1338,7 @@
     async function submitScores(date, index) {
       showLoading("Submitting...");
       const params = new URLSearchParams({ action: "submitScores", date, index });
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 3; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
       }
