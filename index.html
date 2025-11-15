@@ -1048,7 +1048,9 @@
       popup.className = 'popup';
 
       const divisions = Object.keys(liveResults.divisions || {});
-      const checkboxes = divisions.map(div =>
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
+      const sortedDivisions = divisions.slice().sort(collator.compare);
+      const checkboxes = sortedDivisions.map(div =>
         `<label><input type="checkbox" value="${div}"> ${div}</label>`).join('<br>');
 
       popup.innerHTML = `
