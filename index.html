@@ -1201,7 +1201,9 @@
       setOptions("teamFilter", [...teams].sort((a, b) =>
         a.localeCompare(b, "en", { sensitivity: "base" })
       ));
-      setOptions("divisionFilter", [...divisions]);
+      setOptions("divisionFilter", [...divisions].sort((a, b) =>
+        a.localeCompare(b, "en", { sensitivity: "base" })
+      ));
       setOptions("courtFilter", [...courts].sort((a, b) =>
         a.localeCompare(b, "en", { sensitivity: "base" })
       ));
