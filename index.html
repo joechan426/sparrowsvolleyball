@@ -4,55 +4,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Sparrows Poké League</title>
+  <title>SparrowsVolleyball</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
     body {
-      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255, 222, 0, 0.25) 0%, rgba(255, 222, 0, 0) 55%),
-        radial-gradient(circle at 80% 10%, rgba(59, 76, 202, 0.18) 0%, rgba(59, 76, 202, 0) 60%),
-        linear-gradient(180deg, #fff7cc 0%, #ffec85 40%, #ffe066 70%, #ffd43b 100%);
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, rgba(255, 243, 186, 0.9) 0%, rgba(255, 255, 255, 0) 45%),
+                  linear-gradient(135deg, #fdf7c3 0%, #d9f99d 40%, #86efac 100%);
       background-attachment: fixed;
       margin: 0;
       padding: 24px;
-      color: #1e2a78;
+      color: #21512d;
       min-height: 100vh;
-      position: relative;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        radial-gradient(circle, rgba(59, 76, 202, 0.18) 0%, rgba(59, 76, 202, 0) 65%),
-        repeating-linear-gradient(
-          45deg,
-          rgba(30, 42, 120, 0.05) 0px,
-          rgba(30, 42, 120, 0.05) 18px,
-          rgba(255, 255, 255, 0) 18px,
-          rgba(255, 255, 255, 0) 36px
-        );
-      mix-blend-mode: soft-light;
-      z-index: 0;
-    }
-    body > * {
-      position: relative;
-      z-index: 1;
     }
     h1 {
-      font-family: 'Bangers', 'Montserrat', sans-serif;
-      font-size: 34px;
+      font-size: 30px;
       margin-bottom: 6px;
-      color: #1e2a78;
-      letter-spacing: 2px;
+      color: #0d7a39;
+      letter-spacing: 1px;
       text-transform: uppercase;
-      text-shadow: 3px 3px 0 #ffde00, -2px -2px 0 rgba(30, 42, 120, 0.3);
+      text-shadow: 2px 3px 12px rgba(13, 122, 57, 0.4), 0 0 16px rgba(255, 213, 79, 0.6);
     }
     p.description {
       margin-top: 0;
-      color: #23338f;
+      color: #2f6f3a;
       font-size: 15px;
       line-height: 1.6;
     }
@@ -61,13 +36,6 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 20px;
-      padding: 18px 22px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.75);
-      box-shadow: 0 16px 35px rgba(30, 42, 120, 0.22);
-      position: relative;
-      overflow: hidden;
-      z-index: 1;
     }
     .logo-group {
       display: flex;
@@ -78,7 +46,7 @@
       width: 60px;
       height: 60px;
       object-fit: contain;
-      filter: drop-shadow(0 6px 10px rgba(30, 42, 120, 0.3));
+      filter: drop-shadow(0 6px 10px rgba(22, 101, 52, 0.35));
     }
     .header-text {
       display: flex;
@@ -92,83 +60,72 @@
       gap: 10px;
       padding: 16px;
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.82);
-      border: 2px solid rgba(30, 42, 120, 0.12);
-      box-shadow: 0 12px 26px rgba(30, 42, 120, 0.18);
-      z-index: 1;
+      background: rgba(255, 255, 255, 0.58);
+      box-shadow: 0 10px 24px rgba(22, 101, 52, 0.18);
     }
     select {
-      background: rgba(255, 255, 255, 0.92);
-      color: #1e2a78;
-      box-shadow: inset 0 1px 3px rgba(30, 42, 120, 0.15);
-      border: 2px solid rgba(30, 42, 120, 0.12);
+      background: rgba(255, 255, 255, 0.85);
+      color: #166534;
+      box-shadow: inset 0 1px 3px rgba(22, 101, 52, 0.15);
     }
     select, button {
       padding: 10px 14px;
       font-size: 16px;
       border-radius: 999px;
-      border: 2px solid transparent;
+      border: none;
     }
     button {
-      background: linear-gradient(135deg, #3b4cca, #1e2a78);
-      color: #ffde00;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      box-shadow: 0 8px 18px rgba(30, 42, 120, 0.35);
+      background: linear-gradient(120deg, #22c55e, #16a34a);
+      color: #0f331a;
+      font-weight: 600;
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4);
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 14px 26px rgba(30, 42, 120, 0.45);
-      background: linear-gradient(135deg, #ff1c1c, #d7263d);
-      color: #fff4ad;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(21, 128, 61, 0.45);
+      background: linear-gradient(120deg, #34d399, #22c55e);
     }
     button:focus,
     button:active,
     button.active {
-      outline: 3px solid rgba(255, 222, 0, 0.9);
-      box-shadow: 0 0 16px rgba(255, 222, 0, 0.7);
-      color: #fff4ad;
+      outline: 2px solid rgba(255, 220, 128, 0.9);
+      box-shadow: 0 0 10px rgba(253, 224, 71, 0.7);
     }
     .card {
       border: 1px solid transparent;
       padding: 18px;
       margin-bottom: 18px;
       border-radius: 16px;
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 243, 186, 0.92));
-      border-image: linear-gradient(45deg, rgba(59, 76, 202, 0.85), rgba(255, 222, 0, 0.85)) 1;
-      box-shadow: 0 16px 28px rgba(30, 42, 120, 0.18);
+      background: rgba(255, 255, 255, 0.88);
+      border-image: linear-gradient(45deg, rgba(34, 197, 94, 0.9), rgba(132, 204, 22, 0.9)) 1;
+      box-shadow: 0 12px 25px rgba(21, 128, 61, 0.18);
     }
     .team {
       font-size: 22px;
       font-weight: 700;
-      color: #d7263d;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      color: #0f7c3a;
     }
     .time {
       font-size: 14px;
       margin-top: 4px;
-      color: #1e3a8a;
+      color: #0ea5e9;
     }
     .location {
       font-size: 14px;
       margin-top: 4px;
       color: #f97316;
-      font-weight: 600;
     }
     .duty {
       font-size: 14px;
       margin-top: 4px;
-      color: #9333ea;
+      color: #a855f7;
     }
     .match-date {
       font-size: 14px;
       margin-top: 4px;
-      color: #1e2a78;
-      font-weight: 600;
+      color: #166534;
     }
     .popup, .overlay {
       position: fixed;
@@ -176,7 +133,7 @@
       width: 100%; height: 100%;
     }
     .overlay {
-      background: rgba(30, 42, 120, 0.35);
+      background: rgba(31, 81, 45, 0.35);
       z-index: 100;
     }
     .popup {
@@ -186,14 +143,14 @@
       z-index: 101;
     }
     .popup-content {
-      background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 240, 170, 0.98));
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.97), rgba(240, 253, 244, 0.98));
       padding: 24px;
       border-radius: 16px;
       max-width: 400px;
       width: 100%;
-      box-shadow: 0 18px 32px rgba(30, 42, 120, 0.25);
+      box-shadow: 0 14px 28px rgba(22, 101, 52, 0.25);
       border: 1px solid transparent;
-      border-image: linear-gradient(45deg, rgba(59, 76, 202, 0.9), rgba(255, 222, 0, 0.9)) 1;
+      border-image: linear-gradient(45deg, rgba(34, 197, 94, 0.9), rgba(132, 204, 22, 0.9)) 1;
     }
     .popup-content input[type="tel"],
     .popup-content input[type="text"] {
@@ -201,18 +158,12 @@
       text-align: center;
       margin-bottom: 6px;
       font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid rgba(30, 42, 120, 0.2);
-      padding: 6px 4px;
     }
     .popup-content textarea {
       width: 100%;
       height: 60px;
       margin-top: 10px;
       font-size: 16px;
-      border-radius: 10px;
-      border: 1px solid rgba(30, 42, 120, 0.2);
-      padding: 6px 10px;
     }
     .set-row {
       display: flex;
@@ -247,30 +198,28 @@
       padding: 2px 5px;
       border-radius: 4px;
       margin: 0 2px;
-      color: #1e2a78;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid rgba(30, 42, 120, 0.12);
+      color: #006400;
+      background: #e8f5e9;
     }
     .team-entry { cursor: pointer; }
     .team-color.highlight {
-      background: #ffde00;
-      outline: 2px solid rgba(30, 42, 120, 0.65);
-      box-shadow: 0 0 10px rgba(255, 222, 0, 0.7);
+      background: #fef08a;
+      outline: 2px solid rgba(253, 224, 71, 0.9);
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
     }
     .ranking-table tr.highlight td {
-      background: rgba(255, 222, 0, 0.28);
-      box-shadow: inset 0 0 0 2px rgba(30, 42, 120, 0.35);
+      background: #fef9c3;
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.55);
     }
     .division {
       display: inline-block;
-      background: rgba(30, 42, 120, 0.1);
-      color: #1e2a78;
+      background: rgba(34, 197, 94, 0.15);
+      color: #166534;
       padding: 4px 12px;
       border-radius: 999px;
       font-size: 14px;
       margin-bottom: 4px;
-      font-weight: 700;
-      text-transform: uppercase;
+      font-weight: 600;
     }
     .loading-overlay {
       position: fixed;
@@ -278,8 +227,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(30, 42, 120, 0.7);
-      color: #ffde00;
+      background: rgba(13, 71, 37, 0.55);
+      color: #f0fdf4;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -299,7 +248,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      filter: drop-shadow(0 4px 10px rgba(255, 222, 0, 0.45));
+      filter: drop-shadow(0 4px 10px rgba(240, 253, 244, 0.45));
     }
     .loading-overlay .loading-spinner svg,
     .loading-overlay .loading-spinner img {
@@ -310,7 +259,6 @@
     .loading-overlay .loading-text {
       font-size: 20px;
       letter-spacing: 0.5px;
-      text-transform: uppercase;
     }
     @keyframes volleyball-spin {
       from { transform: rotate(0deg); }
@@ -324,14 +272,10 @@
     .tab-bar button {
       padding: 12px 18px;
       font-size: 18px;
-      border-bottom: 4px solid rgba(30, 42, 120, 0.8);
-      background: linear-gradient(135deg, #3b4cca, #1e2a78);
-      color: #ffde00;
+      border-bottom: 4px solid rgba(34, 197, 94, 0.8);
     }
     .tab-bar button.active {
-      background: linear-gradient(135deg, #ff1c1c, #d7263d);
-      color: #fff4ad;
-      border-bottom-color: #ffde00;
+      background: linear-gradient(120deg, #34d399, #22c55e);
     }
     .division-tabs {
       margin-bottom: 15px;
@@ -343,19 +287,16 @@
       margin-bottom: 5px;
     }
     .division-tabs button {
-      color: #ffde00;
+      color: #fff;
     }
     .division-row button.active {
-      background: linear-gradient(135deg, #ff1c1c, #d7263d);
-      color: #fff4ad;
+      background: linear-gradient(120deg, #34d399, #22c55e);
     }
     .finals-row button {
-      background: linear-gradient(135deg, #f97316, #facc15);
-      color: #1e2a78;
+      background: linear-gradient(120deg, #38bdf8, #0ea5e9);
     }
     .finals-row button.active {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-      color: #ffde00;
+      background: linear-gradient(120deg, #0ea5e9, #0284c7);
     }
     .ranking-table {
       width: 100%;
@@ -364,23 +305,19 @@
       font-size: 14px;
     }
     .ranking-table th {
-      background: linear-gradient(135deg, #3b4cca, #1e2a78);
-      color: #ffde00;
+      background: linear-gradient(120deg, #22c55e, #16a34a);
+      color: #0f331a;
       padding: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
     .ranking-table td {
-      border: 1px solid rgba(30, 42, 120, 0.2);
+      border: 1px solid rgba(34, 197, 94, 0.2);
       padding: 6px;
       text-align: center;
-      background-color: rgba(255, 255, 255, 0.9);
     }
     .auto-renew-note {
       font-size: 14px;
       margin-bottom: 5px;
-      color: #1e2a78;
-      font-weight: 600;
+      color: #2f6f3a;
     }
     .match-days {
       display: flex;
@@ -393,10 +330,9 @@
       margin-bottom: 15px;
     }
     .date-header {
-      font-weight: 700;
+      font-weight: 600;
       margin-bottom: 6px;
-      color: #1e2a78;
-      text-transform: uppercase;
+      color: #0f7c3a;
     }
     .match-result {
       width: 100%;
@@ -429,7 +365,7 @@
       align-items: center;
       font-size: 20px;
       font-weight: bold;
-      color: #d7263d;
+      color: #ea580c;
       white-space: nowrap;
     }
     .set-table {
@@ -447,12 +383,11 @@
     .set-table th.set-num {
       text-align: center;
       font-size: 12px;
-      color: #475569;
+      color: #999;
     }
     .set-score {
       font-size: 16px;
       font-weight: 600;
-      color: #1e2a78;
     }
 
     .bracket {
@@ -484,19 +419,18 @@
     .bracket .set-count {
       font-size: 20px;
       font-weight: bold;
-      color: #d7263d;
+      color: #f97316;
       margin: 4px 0;
     }
     .bracket .line {
       width: 2px;
       height: 30px;
-      background: rgba(30, 42, 120, 0.5);
+      background: rgba(34, 197, 94, 0.6);
     }
     .bracket .champion {
       font-weight: bold;
       font-size: 22px;
-      color: #ff1c1c;
-      text-shadow: 2px 2px 0 rgba(255, 222, 0, 0.6);
+      color: #0f7c3a;
     }
 
     .bracket.horizontal {
@@ -512,7 +446,7 @@
     .bracket.horizontal .line {
       width: 40px;
       height: 2px;
-      background: rgba(30, 42, 120, 0.5);
+      background: rgba(34, 197, 94, 0.6);
     }
 
     @media (max-width: 600px) {
@@ -545,8 +479,8 @@
     </div>
   </div>
   <div class='tab-bar'>
-    <button id='scheduleTab' class='active' onclick="showTab('schedule')">Battle Schedule</button>
-    <button id='liveTab' onclick="showTab('live')">Live Battle Feed</button>
+    <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
+    <button id='liveTab' onclick="showTab('live')">Live results</button>
   </div>
   <div id="scheduleSection">
   <div class="filters">
@@ -554,8 +488,8 @@
     <select id="divisionFilter"></select>
     <select id="courtFilter"></select>
     <select id="dateFilter"></select>
-    <button onclick="resetFilters()">Reset Gear</button>
-    <button id="printScheduleBtn" onclick="printSchedulePdf()">Print Battle Plan</button>
+    <button onclick="resetFilters()">Reset</button>
+    <button id="printScheduleBtn" onclick="printSchedulePdf()">Print Schedule</button>
   </div>
   <div id="results"></div>
   </div>
@@ -564,7 +498,7 @@
       <div id="divisionRowRegular" class="division-row"></div>
       <div id="divisionRowFinals" class="division-row finals-row"></div>
     </div>
-    <button id="combineViewBtn">Combine League Overview</button>
+    <button id="combineViewBtn">Combine Divisions Table View</button>
     <div id="divisionContent"></div>
   </div>
 
@@ -575,9 +509,9 @@
     let divisionColorMap = {};
     let highlightedTeamKey = null;
     const colorPalette = [
-      '#3b4cca', '#ffde00', '#ff1c1c', '#f97316', '#2a75bb',
-      '#ffd43b', '#1976d2', '#facc15', '#ef4444', '#1e3a8a',
-      '#fb7185', '#2563eb'
+      '#ff1744', '#00e676', '#2979ff', '#ff9100', '#d500f9',
+      '#f50057', '#651fff', '#00bfa5', '#ffea00', '#64dd17',
+      '#00b0ff', '#ff4081'
     ];
     const apiUrl = "https://script.google.com/macros/s/AKfycbwwqw-OB2Vl8Lap6UCumyhUTnJahAFkPkkBbCCg-7t_tJthI7uMbrYxc6sRiuic-3s/exec";
     function showTab(tab) {
@@ -589,7 +523,7 @@
     }
 
 
-    function showLoading(message = "Loading battle data...") {
+    function showLoading(message = "Loading...") {
       let overlay = document.querySelector(".loading-overlay");
       if (!overlay) {
         overlay = document.createElement("div");
@@ -932,7 +866,7 @@
       if (!data) { container.innerHTML = ''; return; }
 
       if (/finals/i.test(div)) {
-        let html = '<div class="auto-renew-note">League table refreshes every 30 sec</div>' +
+        let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
           buildFinalsBracket(div);
         container.innerHTML = html;
         document.querySelectorAll('#divisionTabs button').forEach(btn => btn.classList.remove('active'));
@@ -945,7 +879,7 @@
         return;
       }
 
-      let html = '<div class="auto-renew-note">League table refreshes every 30 sec</div>' +
+      let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
@@ -1055,10 +989,10 @@
 
       popup.innerHTML = `
         <div class="popup-content">
-          <h3>Select Battle Leagues</h3>
+          <h3>Select Divisions</h3>
           ${checkboxes}
           <div class="popup-buttons">
-            <button id="combineConfirm">Showcase</button>
+            <button id="combineConfirm">Show</button>
             <button id="combineCancel">Cancel</button>
           </div>
         </div>
@@ -1094,7 +1028,7 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
-      let html = '<div class="auto-renew-note">League table refreshes every 30 sec</div>' +
+      let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
@@ -1114,7 +1048,7 @@
           `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
       });
       html += '</tbody></table>';
-      html += '<div class="auto-renew-note">Tap your squad name to spotlight their highlights</div>';
+      html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
 
       html += '<div class="match-days">';
       for (const date in schedule) {
@@ -1268,7 +1202,7 @@
 
           if (match.allowResult) {
             const btn = document.createElement("button");
-            btn.textContent = "Log Battle Result (Officials only)";
+            btn.textContent = "Enter Result (Referee use only)";
             btn.onclick = () => promptPasscode(d, index, match.team, match.opponent);
             card.appendChild(btn);
           }
@@ -1284,10 +1218,10 @@
       popup.className = "popup";
       popup.innerHTML = `
         <div class="popup-content">
-          <p>Enter trainer passcode:</p>
+          <p>Enter passcode:</p>
           <input id="passcodeInput" type="tel" inputmode="numeric" pattern="[0-9]*" />
           <div class="popup-buttons">
-            <button id="passSubmit">Unlock</button>
+            <button id="passSubmit">Submit</button>
             <button id="passCancel">Cancel</button>
           </div>
         </div>
@@ -1321,7 +1255,7 @@
     }
 
     async function verifyPasscode(date, index, team, opponent) {
-      showLoading("Verifying trainer passcode...");
+      showLoading("Verifying...");
       const input = document.getElementById("passcodeInput").value;
       const adjustedIndex = index - 1;
       const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&passcode=${input}`;
@@ -1333,7 +1267,7 @@
       if (txt === "PASS_OK") {
         openScorePopup(date, adjustedIndex, team, opponent);
       } else {
-        alert("Trainer passcode error.");
+        alert("Passcode Error");
       }
     }
 
@@ -1359,17 +1293,17 @@
 
       popup.innerHTML = `
         <div class="popup-content">
-          <h3>Enter Battle Scores</h3>
+          <h3>Enter Scores</h3>
           ${headerRow}
           ${inputFields}
           <div>
-            <label>Battle Comment:</label>
-            <div>(Share the MVP trainer or key play from this showdown.)</div>
+            <label>Comment:</label>
+            <div>(Please write down the name of the MVP of the game here)</div>
             <textarea id="comment" maxlength="255"></textarea>
             <small>Max 255 characters</small>
           </div>
           <div class="popup-buttons">
-            <button id="scoreSubmit">Report Result</button>
+            <button id="scoreSubmit">Submit</button>
             <button id="scoreCancel">Cancel</button>
           </div>
         </div>
@@ -1407,7 +1341,7 @@
     }
 
     async function submitScores(date, index) {
-      showLoading("Dispatching battle report...");
+      showLoading("Submitting...");
       const params = new URLSearchParams({ action: "submitScores", date, index });
       for (let i = 1; i <= 3; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
@@ -1418,10 +1352,10 @@
       const txt = await res.text();
       hideLoading();
       if (txt === "SUBMIT_OK") {
-        alert("Battle report submitted successfully!");
+        alert("Result submitted successfully!");
         location.reload();
       } else {
-        alert("A wild error appeared while submitting the report.");
+        alert("Error submitting result.");
       }
     }
 
@@ -1454,7 +1388,7 @@
           body,
           margin: { top: marginTop },
           styles: { fontSize: 10 },
-          headStyles: { fillColor: [59, 76, 202], textColor: [255, 255, 255] },
+          headStyles: { fillColor: [0, 100, 0] },
           rowPageBreak: 'avoid',
           didDrawPage: (data) => {
             doc.setFontSize(16);
@@ -1506,7 +1440,7 @@
           body,
           margin: { top: marginTop },
           styles: { fontSize: 9, cellPadding: 1, lineWidth: 0.1, lineColor: [0, 0, 0] },
-          headStyles: { fillColor: [59, 76, 202], textColor: [255, 255, 255], minCellHeight: 0 },
+          headStyles: { fillColor: [0, 100, 0], minCellHeight: 0 },
           bodyStyles: { minCellHeight: 25, maxCellHeight: MAX_MATRIX_CELL_HEIGHT },
           tableLineWidth: 0.1,
           tableLineColor: [0, 0, 0],
@@ -1663,7 +1597,7 @@
     document.getElementById("dateFilter").addEventListener("change", filterResults);
     document.getElementById("combineViewBtn").addEventListener("click", openCombineDivisionsPopup);
     window.addEventListener("DOMContentLoaded", async () => {
-      showLoading("Summoning arena data...");
+      showLoading("Data retrieving");
       showTab("schedule");
       await Promise.all([fetchSchedule(), fetchResults()]);
       hideLoading();
