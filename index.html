@@ -739,11 +739,7 @@
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
           scheduleData[date] = matches
-            .map((m, i) => {
-              if (!m) return null;
-              const originalIndex = m.rowIndex ?? m.index ?? i;
-              return { ...m, rowIndex: originalIndex };
-            })
+            .map((m, i) => (m ? { ...m, rowIndex: i } : null))
             .filter(Boolean);
           scheduleData[date].forEach(m => {
             if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
