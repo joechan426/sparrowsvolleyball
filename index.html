@@ -739,7 +739,11 @@
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
           scheduleData[date] = matches
-            .map((m, i) => (m ? { ...m, rowIndex: i } : null))
+            .map((m, i) => {
+              if (!m) return null;
+              const originalIndex = m.rowIndex ?? m.index ?? i;
+              return { ...m, rowIndex: originalIndex };
+            })
             .filter(Boolean);
           scheduleData[date].forEach(m => {
             if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
@@ -1278,15 +1282,14 @@
     async function verifyPasscode(date, index, team, opponent) {
       showLoading("Verifying...");
       const input = document.getElementById("passcodeInput").value;
-      const adjustedIndex = index - 1;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&passcode=${input}`;
+      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
       const res = await fetch(url);
       const txt = await res.text();
       hideLoading();
       document.querySelector(".popup").remove();
       document.querySelector(".overlay").remove();
       if (txt === "PASS_OK") {
-        openScorePopup(date, adjustedIndex, team, opponent);
+        openScorePopup(date, index, team, opponent);
       } else {
         alert("Passcode Error");
       }
