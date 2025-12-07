@@ -1278,15 +1278,19 @@
     async function verifyPasscode(date, index, team, opponent) {
       showLoading("Verifying...");
       const input = document.getElementById("passcodeInput").value;
-      const adjustedIndex = index - 1;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&passcode=${input}`;
+      // "index" is already zero-based from the schedule data. Subtracting 1
+      // caused us to send "-1" for the first match, so the Apps Script looked
+      // up the wrong row and never saved the entered scores. Keep the index as
+      // is when calling the validation endpoint so results map to the correct
+      // Google Sheet row.
+      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
       const res = await fetch(url);
       const txt = await res.text();
       hideLoading();
       document.querySelector(".popup").remove();
       document.querySelector(".overlay").remove();
       if (txt === "PASS_OK") {
-        openScorePopup(date, adjustedIndex, team, opponent);
+        openScorePopup(date, index, team, opponent);
       } else {
         alert("Passcode Error");
       }
