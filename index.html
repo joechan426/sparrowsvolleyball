@@ -739,7 +739,21 @@
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
           scheduleData[date] = matches
-            .map((m, i) => (m ? { ...m, rowIndex: i } : null))
+            .map((m, idx) => {
+              if (!m) return null;
+
+              // Pull the sheet row directly from the JSON; never derive it from
+              // any client-side ordering so that re-sorting the schedule on the
+              // page cannot change which row gets updated. If the row cannot be
+              // read, fall back to the original order from the fetched JSON so
+              // result buttons remain available.
+              const sheetRow = m.rowIndex ?? m.index ?? m.originalIndex ?? m.row ?? m.sheetRow ?? m._row ?? m.rowNumber ?? m.rowNum;
+              const rawRow = (sheetRow !== undefined && sheetRow !== null && sheetRow !== "") ? sheetRow : idx;
+              const parsedRow = Number(rawRow);
+              const rowIndex = Number.isFinite(parsedRow) ? parsedRow : rawRow;
+
+              return { ...m, rowIndex };
+            })
             .filter(Boolean);
           scheduleData[date].forEach(m => {
             if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
@@ -1193,9 +1207,9 @@
       dateList.forEach(d => {
         if (!scheduleData[d]) return;
 
-        scheduleData[d].forEach((match, idx) => {
+        scheduleData[d].forEach((match) => {
           if (!match) return;
-          const index = match.rowIndex ?? idx;
+          const index = match.rowIndex;
           const matchTeam = match.team,
                 matchOpponent = match.opponent,
                 duty = match.dutyTeam;
@@ -1278,15 +1292,14 @@
     async function verifyPasscode(date, index, team, opponent) {
       showLoading("Verifying...");
       const input = document.getElementById("passcodeInput").value;
-      const adjustedIndex = index - 1;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&passcode=${input}`;
+      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
       const res = await fetch(url);
       const txt = await res.text();
       hideLoading();
       document.querySelector(".popup").remove();
       document.querySelector(".overlay").remove();
       if (txt === "PASS_OK") {
-        openScorePopup(date, adjustedIndex, team, opponent);
+        openScorePopup(date, index, team, opponent);
       } else {
         alert("Passcode Error");
       }
