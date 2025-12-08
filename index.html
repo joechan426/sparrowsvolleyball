@@ -718,7 +718,7 @@
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
           scheduleData[date] = matches
-            .map((m, i) => (m ? { ...m, rowIndex: i } : null))
+            .map((m, i) => (m ? { ...m, rowIndex: m.rowIndex ?? (i + 1) } : null))
             .filter(Boolean);
           scheduleData[date].forEach(m => {
             if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
@@ -1159,6 +1159,20 @@
       filterResults();
     }
 
+    function getMatchReference(date, team, opponent, time) {
+      const matches = scheduleData[date] || [];
+      const tKey = normalizeName(team || "");
+      const oKey = normalizeName(opponent || "");
+      const idx = matches.findIndex(m =>
+        normalizeName(m.team || "") === tKey &&
+        normalizeName(m.opponent || "") === oKey &&
+        (m.time || "") === (time || "")
+      );
+      if (idx === -1) return null;
+      const match = matches[idx];
+      return { match, rowIndex: match.rowIndex ?? (idx + 1) };
+    }
+
     function filterResults() {
       const team = document.getElementById("teamFilter").value;
       const division = document.getElementById("divisionFilter").value;
@@ -1203,7 +1217,13 @@
           if (match.allowResult) {
             const btn = document.createElement("button");
             btn.textContent = "Enter Result (Referee use only)";
-            btn.onclick = () => promptPasscode(d, index, match.team, match.opponent);
+            btn.onclick = () => promptPasscode({
+              date: d,
+              team: match.team,
+              opponent: match.opponent,
+              time: match.time,
+              index
+            });
             card.appendChild(btn);
           }
           results.appendChild(card);
@@ -1211,7 +1231,14 @@
       });
     }
 
-    function promptPasscode(date, index, team, opponent) {
+    function promptPasscode(matchInfo) {
+      const { date, team, opponent, time } = matchInfo;
+      const ref = getMatchReference(date, team, opponent, time);
+      if (!ref) {
+        alert("Unable to find the selected match. Please refresh and try again.");
+        return;
+      }
+      const index = ref.rowIndex;
       const overlay = document.createElement("div");
       overlay.className = "overlay";
       const popup = document.createElement("div");
@@ -1238,7 +1265,7 @@
       const onKey = (e) => {
         if (e.key === "Enter") {
           document.removeEventListener("keydown", onKey);
-          verifyPasscode(date, index, team, opponent);
+          verifyPasscode({ ...matchInfo, index });
         } else if (e.key === "Escape") {
           cleanup();
         }
@@ -1247,31 +1274,33 @@
 
       popup.querySelector("#passSubmit").addEventListener("click", () => {
         document.removeEventListener("keydown", onKey);
-        verifyPasscode(date, index, team, opponent);
+        verifyPasscode({ ...matchInfo, index });
       });
       popup.querySelector("#passCancel").addEventListener("click", cleanup);
 
       passInput.focus();
     }
 
-    async function verifyPasscode(date, index, team, opponent) {
+    async function verifyPasscode(matchInfo) {
+      const { date, index, team, opponent, time } = matchInfo;
       showLoading("Verifying...");
       const input = document.getElementById("passcodeInput").value;
       const adjustedIndex = index - 1;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&passcode=${input}`;
+      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&team=${encodeURIComponent(team)}&opponent=${encodeURIComponent(opponent)}&time=${encodeURIComponent(time)}&passcode=${input}`;
       const res = await fetch(url);
       const txt = await res.text();
       hideLoading();
       document.querySelector(".popup").remove();
       document.querySelector(".overlay").remove();
       if (txt === "PASS_OK") {
-        openScorePopup(date, adjustedIndex, team, opponent);
+        openScorePopup({ ...matchInfo, index: adjustedIndex });
       } else {
         alert("Passcode Error");
       }
     }
 
-    function openScorePopup(date, index, team, opponent) {
+    function openScorePopup(matchInfo) {
+      const { date, index, team, opponent } = matchInfo;
       const overlay = document.createElement("div");
       overlay.className = "overlay";
       const popup = document.createElement("div");
@@ -1324,7 +1353,7 @@
       const onKey = (e) => {
         if (e.key === "Enter") {
           document.removeEventListener("keydown", onKey);
-          submitScores(date, index);
+          submitScores(matchInfo);
         } else if (e.key === "Escape") {
           cleanup();
         }
@@ -1333,16 +1362,31 @@
       document.addEventListener("keydown", onKey);
       submitBtn.addEventListener("click", () => {
         document.removeEventListener("keydown", onKey);
-        submitScores(date, index);
+        submitScores(matchInfo);
       });
       cancelBtn.addEventListener("click", cleanup);
 
       firstInput.focus();
     }
 
-    async function submitScores(date, index) {
+    async function submitScores(matchInfo) {
+      const { date, team, opponent, time } = matchInfo;
       showLoading("Submitting...");
-      const params = new URLSearchParams({ action: "submitScores", date, index });
+      const ref = getMatchReference(date, team, opponent, time);
+      if (!ref) {
+        hideLoading();
+        alert("Match details have changed. Please refresh and try again.");
+        return;
+      }
+
+      const params = new URLSearchParams({
+        action: "submitScores",
+        date,
+        index: (ref.rowIndex - 1),
+        team,
+        opponent,
+        time
+      });
       for (let i = 1; i <= 3; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
