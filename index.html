@@ -525,6 +525,7 @@
 
   <script>
     let scheduleData = {};
+    let scheduleDateOrder = [];
     let defaultDate = "";
     let teamColorMap = {};
     let divisionColorMap = {};
@@ -734,13 +735,15 @@
       const res = await fetch(apiUrl, { cache: "no-store" });
       const json = await res.json();
       scheduleData = {};
+      scheduleDateOrder = Object.keys(json.schedule || {});
       teamNameMap = {};
       for (const date in json.schedule) {
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
           scheduleData[date] = matches
             .map((m, i) => (m ? { ...m, rowIndex: i } : null))
-            .filter(Boolean);
+            .filter(Boolean)
+            .sort((a, b) => (a.rowIndex ?? 0) - (b.rowIndex ?? 0));
           scheduleData[date].forEach(m => {
             if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
             if (m.opponent) teamNameMap[normalizeName(m.opponent)] = m.opponent;
@@ -1131,7 +1134,7 @@
     function populateFilters() {
       const teams = new Set(), divisions = new Set(), courts = new Set(), dates = [];
 
-      for (const date in scheduleData) {
+      scheduleDateOrder.forEach(date => {
         dates.push(date);
         for (const match of scheduleData[date]) {
           teams.add(match.team);
@@ -1139,7 +1142,7 @@
           divisions.add(match.division);
           courts.add(match.location);
         }
-      }
+      });
 
       const setOptions = (id, items) => {
         const el = document.getElementById(id);
@@ -1188,7 +1191,7 @@
       const results = document.getElementById("results");
       results.innerHTML = "";
 
-      const dateList = date ? [date] : Object.keys(scheduleData);
+      const dateList = date ? [date] : scheduleDateOrder;
 
       dateList.forEach(d => {
         if (!scheduleData[d]) return;
