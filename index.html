@@ -1203,7 +1203,8 @@
           if (match.allowResult) {
             const btn = document.createElement("button");
             btn.textContent = "Enter Result (Referee use only)";
-            btn.onclick = () => promptPasscode(d, index, match.team, match.opponent);
+            const matchIndex = match.rowIndex ?? index;
+            btn.onclick = () => promptPasscode(d, matchIndex, match);
             card.appendChild(btn);
           }
           results.appendChild(card);
@@ -1211,7 +1212,7 @@
       });
     }
 
-    function promptPasscode(date, index, team, opponent) {
+    function promptPasscode(date, index, match) {
       const overlay = document.createElement("div");
       overlay.className = "overlay";
       const popup = document.createElement("div");
@@ -1238,7 +1239,7 @@
       const onKey = (e) => {
         if (e.key === "Enter") {
           document.removeEventListener("keydown", onKey);
-          verifyPasscode(date, index, team, opponent);
+          verifyPasscode(date, index, match);
         } else if (e.key === "Escape") {
           cleanup();
         }
@@ -1247,14 +1248,14 @@
 
       popup.querySelector("#passSubmit").addEventListener("click", () => {
         document.removeEventListener("keydown", onKey);
-        verifyPasscode(date, index, team, opponent);
+        verifyPasscode(date, index, match);
       });
       popup.querySelector("#passCancel").addEventListener("click", cleanup);
 
       passInput.focus();
     }
 
-    async function verifyPasscode(date, index, team, opponent) {
+    async function verifyPasscode(date, index, match) {
       showLoading("Verifying...");
       const input = document.getElementById("passcodeInput").value;
       const adjustedIndex = index - 1;
@@ -1265,13 +1266,13 @@
       document.querySelector(".popup").remove();
       document.querySelector(".overlay").remove();
       if (txt === "PASS_OK") {
-        openScorePopup(date, adjustedIndex, team, opponent);
+        openScorePopup(date, adjustedIndex, match);
       } else {
         alert("Passcode Error");
       }
     }
 
-    function openScorePopup(date, index, team, opponent) {
+    function openScorePopup(date, index, match) {
       const overlay = document.createElement("div");
       overlay.className = "overlay";
       const popup = document.createElement("div");
@@ -1281,8 +1282,8 @@
       const headerRow = `
         <div class="set-row">
           <span class="label-column"></span>
-          <span class="team-header">${team}</span>
-          <span class="team-header">${opponent}</span>
+          <span class="team-header">${match.team}</span>
+          <span class="team-header">${match.opponent}</span>
         </div>`;
       let inputFields = setLabels.map((label, i) => `
         <div class="set-row">
@@ -1294,6 +1295,11 @@
       popup.innerHTML = `
         <div class="popup-content">
           <h3>Enter Scores</h3>
+          <div>
+            <strong>Date:</strong> ${date}<br/>
+            <strong>Division:</strong> ${match.division || ''}<br/>
+            <strong>Time:</strong> ${match.time || ''}
+          </div>
           ${headerRow}
           ${inputFields}
           <div>
@@ -1324,7 +1330,7 @@
       const onKey = (e) => {
         if (e.key === "Enter") {
           document.removeEventListener("keydown", onKey);
-          submitScores(date, index);
+          submitScores(date, index, match);
         } else if (e.key === "Escape") {
           cleanup();
         }
@@ -1333,20 +1339,24 @@
       document.addEventListener("keydown", onKey);
       submitBtn.addEventListener("click", () => {
         document.removeEventListener("keydown", onKey);
-        submitScores(date, index);
+        submitScores(date, index, match);
       });
       cancelBtn.addEventListener("click", cleanup);
 
       firstInput.focus();
     }
 
-    async function submitScores(date, index) {
+    async function submitScores(date, index, match) {
       showLoading("Submitting...");
       const params = new URLSearchParams({ action: "submitScores", date, index });
       for (let i = 1; i <= 3; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
       }
+      params.append("division", match?.division || "");
+      params.append("team", match?.team || "");
+      params.append("opponent", match?.opponent || "");
+      params.append("time", match?.time || "");
       params.append("comment", document.getElementById("comment").value);
       const res = await fetch(`${apiUrl}?${params.toString()}`);
       const txt = await res.text();
