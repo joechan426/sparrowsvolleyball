@@ -714,6 +714,22 @@
       const json = await res.json();
       scheduleData = {};
       teamNameMap = {};
+
+      const headerEl = document.querySelector('h1');
+      if (json.webHeader && headerEl) {
+        headerEl.textContent = json.webHeader;
+      }
+
+      const descEl = document.querySelector('p.description');
+      if (descEl) {
+        const subtitleLines = [json.webSubtitleLine1, json.webSubtitleLine2, json.webSubtitleLine3]
+          .filter(line => typeof line === 'string' && line.trim() !== '')
+          .map(line => line
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;'));
+        descEl.innerHTML = subtitleLines.join('<br>');
+      }
       for (const date in json.schedule) {
         const matches = json.schedule[date];
         if (Array.isArray(matches)) {
