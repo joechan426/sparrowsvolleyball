@@ -769,9 +769,10 @@
         });
       }
       const scheduleDates = Object.keys(scheduleData);
-      defaultDate = json.defaultDate && scheduleDates.includes(json.defaultDate)
-        ? json.defaultDate
-        : scheduleDates[0] || "";
+      const sanitizedDefault = (json.defaultDate || "").trim();
+      defaultDate = sanitizedDefault && scheduleDates.includes(sanitizedDefault)
+        ? sanitizedDefault
+        : "";
       populateFilters();
       document.getElementById("dateFilter").value = defaultDate;
       filterResults();
