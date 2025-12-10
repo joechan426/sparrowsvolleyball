@@ -1303,15 +1303,14 @@
     async function verifyPasscode(date, index, team, opponent) {
       showLoading("Verifying...");
       const input = document.getElementById("passcodeInput").value;
-      const adjustedIndex = index - 1;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&passcode=${input}`;
+      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
       const res = await fetch(url);
       const txt = await res.text();
       hideLoading();
       document.querySelector(".popup").remove();
       document.querySelector(".overlay").remove();
       if (txt === "PASS_OK") {
-        openScorePopup(date, adjustedIndex, team, opponent);
+        openScorePopup(date, index, team, opponent);
       } else {
         alert("Passcode Error");
       }
