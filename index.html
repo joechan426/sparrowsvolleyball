@@ -708,6 +708,35 @@
       return result;
     }
 
+    function normalizeSchedule(rawSchedule, { includeRowIndex = false } = {}) {
+      const output = {};
+      if (Array.isArray(rawSchedule)) {
+        rawSchedule.forEach((match, idx) => {
+          if (!match) return;
+          const dateKey = match.date || match.matchDate || 'Unknown Date';
+          const entry = { ...match };
+          if (includeRowIndex) entry.rowIndex = idx;
+          (output[dateKey] ||= []).push(entry);
+        });
+        return output;
+      }
+      if (rawSchedule && typeof rawSchedule === 'object') {
+        for (const date in rawSchedule) {
+          const matches = rawSchedule[date];
+          if (!Array.isArray(matches)) continue;
+          output[date] = matches
+            .map((m, i) => {
+              if (!m) return null;
+              const entry = { ...m };
+              if (includeRowIndex && entry.rowIndex === undefined) entry.rowIndex = i;
+              return entry;
+            })
+            .filter(Boolean);
+        }
+      }
+      return output;
+    }
+
     async function fetchSchedule() {
       const res = await fetch(apiUrl, { cache: "no-store" });
       const json = await res.json();
@@ -729,20 +758,20 @@
             .replace(/>/g, '&gt;'));
         descEl.innerHTML = subtitleLines.join('<br>');
       }
-      for (const date in json.schedule) {
-        const matches = json.schedule[date];
-        if (Array.isArray(matches)) {
-          scheduleData[date] = matches
-            .map((m, i) => (m ? { ...m, rowIndex: i } : null))
-            .filter(Boolean);
-          scheduleData[date].forEach(m => {
-            if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
-            if (m.opponent) teamNameMap[normalizeName(m.opponent)] = m.opponent;
-            if (m.dutyTeam) teamNameMap[normalizeName(m.dutyTeam)] = m.dutyTeam;
-          });
-        }
+
+      const normalizedSchedule = normalizeSchedule(json.schedule, { includeRowIndex: true });
+      for (const date in normalizedSchedule) {
+        scheduleData[date] = normalizedSchedule[date];
+        scheduleData[date].forEach(m => {
+          if (m.team) teamNameMap[normalizeName(m.team)] = m.team;
+          if (m.opponent) teamNameMap[normalizeName(m.opponent)] = m.opponent;
+          if (m.dutyTeam) teamNameMap[normalizeName(m.dutyTeam)] = m.dutyTeam;
+        });
       }
-      defaultDate = json.defaultDate;
+      const scheduleDates = Object.keys(scheduleData);
+      defaultDate = json.defaultDate && scheduleDates.includes(json.defaultDate)
+        ? json.defaultDate
+        : scheduleDates[0] || "";
       populateFilters();
       document.getElementById("dateFilter").value = defaultDate;
       filterResults();
@@ -758,6 +787,7 @@
       if (!liveResults.schedule) {
         liveResults = { schedule: liveResults };
       }
+      liveResults.schedule = normalizeSchedule(liveResults.schedule);
       if (!liveResults.divisions) {
         liveResults.divisions = computeStandings(liveResults.schedule);
       }
