@@ -512,7 +512,7 @@
       '#f50057', '#651fff', '#00bfa5', '#ffea00', '#64dd17',
       '#00b0ff', '#ff4081'
     ];
-    const apiUrl = "https://script.google.com/macros/s/AKfycbz7EnL2hsG91GAFBC1IuWbMhRF-V7RL-HVb7U-efx3Vm14Hn2Ir68Lv6YRaOsdcBAU/exec";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbzoFemvA6CPlYsvluZGuSNlYdD4pxzYL-FCXQExoOw7TM84f-tywKwHtL7ZmH2MG-k/exec";
     function showTab(tab) {
       document.getElementById("scheduleSection").style.display = tab === "schedule" ? "block" : "none";
       document.getElementById("liveResultsSection").style.display = tab === "live" ? "block" : "none";
@@ -1220,7 +1220,7 @@
 
         scheduleData[d].forEach((match, idx) => {
           if (!match) return;
-          const index = match.rowIndex ?? idx;
+          const index = match.sheetRow ?? match.rowIndex ?? idx;
           const matchTeam = match.team,
                 matchOpponent = match.opponent,
                 duty = match.dutyTeam;
@@ -1300,22 +1300,22 @@
       passInput.focus();
     }
 
-    async function verifyPasscode(date, index, team, opponent) {
-      showLoading("Verifying...");
-      const input = document.getElementById("passcodeInput").value;
-      const adjustedIndex = index - 1;
-      const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${adjustedIndex}&passcode=${input}`;
-      const res = await fetch(url);
-      const txt = await res.text();
-      hideLoading();
-      document.querySelector(".popup").remove();
-      document.querySelector(".overlay").remove();
-      if (txt === "PASS_OK") {
-        openScorePopup(date, adjustedIndex, team, opponent);
-      } else {
-        alert("Passcode Error");
-      }
-    }
+      async function verifyPasscode(date, index, team, opponent) {
+         showLoading("Verifying...");
+         const input = document.getElementById("passcodeInput").value;
+         const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
+         const res = await fetch(url);
+         const txt = await res.text();
+         hideLoading();
+         document.querySelector(".popup").remove();
+         document.querySelector(".overlay").remove();
+         if (txt === "PASS_OK") {
+           openScorePopup(date, index, team, opponent);
+        } else {
+           alert("Passcode Error");
+       }
+     }
+
 
     function openScorePopup(date, index, team, opponent) {
       const overlay = document.createElement("div");
