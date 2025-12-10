@@ -737,6 +737,14 @@
       return output;
     }
 
+    function getMatchesForDate(date) {
+      return (scheduleData[date] || [])
+        .map((match, idx) => ({ match, order: match?.rowIndex ?? idx }))
+        .sort((a, b) => a.order - b.order)
+        .map(({ match }) => match)
+        .filter(Boolean);
+    }
+
     async function fetchSchedule() {
       const res = await fetch(apiUrl, { cache: "no-store" });
       const json = await res.json();
@@ -1216,10 +1224,10 @@
       const dateList = date ? [date] : Object.keys(scheduleData);
 
       dateList.forEach(d => {
-        if (!scheduleData[d]) return;
+        const matches = getMatchesForDate(d);
+        if (!matches.length) return;
 
-        scheduleData[d].forEach((match, idx) => {
-          if (!match) return;
+        matches.forEach((match, idx) => {
           const index = match.rowIndex ?? idx;
           const matchTeam = match.team,
                 matchOpponent = match.opponent,
@@ -1461,7 +1469,7 @@
       };
 
       const renderMatrixTable = (d) => {
-        const matches = (scheduleData[d] || []);
+        const matches = scheduleData[d] || [];
         if (!matches.length) return;
 
         const times = Array.from(new Set(matches.map(m => m.time))).sort();
