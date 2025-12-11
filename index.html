@@ -9,58 +9,33 @@
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
     body {
       font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.45) 0, transparent 25%),
-                  radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.45) 0, transparent 25%),
-                  linear-gradient(135deg, #fef3c7 0%, #fbbf24 18%, #f97316 35%, #22d3ee 65%, #0ea5e9 82%, #0ea5e9 100%);
+      background: radial-gradient(circle at top, rgba(255, 243, 186, 0.9) 0%, rgba(255, 255, 255, 0) 45%),
+                  linear-gradient(135deg, #fdf7c3 0%, #d9f99d 40%, #86efac 100%);
       background-attachment: fixed;
-      background-size: cover;
       margin: 0;
       padding: 24px;
-      color: #0f2a1f;
+      color: #21512d;
       min-height: 100vh;
-    }
-    body::before {
-      content: "🎅🎄☀️🏖️";
-      position: fixed;
-      top: 14px;
-      right: 20px;
-      font-size: 28px;
-      filter: drop-shadow(0 6px 10px rgba(15, 42, 31, 0.3));
-      z-index: 5;
-      pointer-events: none;
     }
     h1 {
       font-size: 30px;
       margin-bottom: 6px;
-      color: #065f46;
+      color: #0d7a39;
       letter-spacing: 1px;
       text-transform: uppercase;
       text-shadow: 2px 3px 12px rgba(13, 122, 57, 0.4), 0 0 16px rgba(255, 213, 79, 0.6);
-      position: relative;
-    }
-    h1::after {
-      content: " 🎁🎄🏄‍♂️☀️";
     }
     p.description {
       margin-top: 0;
-      color: #0f766e;
+      color: #2f6f3a;
       font-size: 15px;
       line-height: 1.6;
-      background: rgba(255, 255, 255, 0.72);
-      padding: 10px 14px;
-      border-radius: 12px;
-      display: inline-block;
-      box-shadow: 0 8px 18px rgba(14, 148, 136, 0.2);
     }
     .site-header {
       display: flex;
       align-items: center;
       gap: 10px;
       margin-bottom: 20px;
-      padding: 14px 16px;
-      border-radius: 18px;
-      background: linear-gradient(120deg, rgba(255, 255, 255, 0.9), rgba(240, 253, 250, 0.85));
-      box-shadow: 0 12px 28px rgba(14, 165, 233, 0.18);
     }
     .logo-group {
       display: flex;
@@ -72,26 +47,11 @@
       height: 60px;
       object-fit: contain;
       filter: drop-shadow(0 6px 10px rgba(22, 101, 52, 0.35));
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.7);
-      padding: 6px;
     }
     .header-text {
       display: flex;
       flex-direction: column;
       justify-content: center;
-    }
-    .holiday-banner {
-      margin: 10px 0 18px;
-      padding: 12px 16px;
-      border-radius: 16px;
-      background: linear-gradient(120deg, rgba(14, 165, 233, 0.14), rgba(249, 115, 22, 0.16), rgba(34, 197, 94, 0.2));
-      color: #0f172a;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 8px 18px rgba(14, 165, 233, 0.18);
     }
     .filters {
       margin-bottom: 20px;
@@ -100,29 +60,13 @@
       gap: 10px;
       padding: 16px;
       border-radius: 18px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(240, 253, 250, 0.9));
-      box-shadow: 0 10px 24px rgba(14, 165, 233, 0.18);
-      border: 1px solid rgba(14, 165, 233, 0.25);
-      position: relative;
-      overflow: hidden;
-    }
-    .filters::before {
-      content: "🎄 Beachy Xmas Filters 🎅";
-      position: absolute;
-      top: -12px;
-      left: 18px;
-      font-size: 13px;
-      color: #0f766e;
-      background: #f0fdf4;
-      padding: 4px 10px;
-      border-radius: 999px;
-      box-shadow: 0 6px 12px rgba(15, 118, 110, 0.18);
+      background: rgba(255, 255, 255, 0.58);
+      box-shadow: 0 10px 24px rgba(22, 101, 52, 0.18);
     }
     select {
-      background: rgba(255, 255, 255, 0.92);
-      color: #0f766e;
-      box-shadow: inset 0 1px 3px rgba(14, 148, 136, 0.15);
-      border: 1px solid rgba(14, 165, 233, 0.25);
+      background: rgba(255, 255, 255, 0.85);
+      color: #166534;
+      box-shadow: inset 0 1px 3px rgba(22, 101, 52, 0.15);
     }
     select, button {
       padding: 10px 14px;
@@ -131,43 +75,32 @@
       border: none;
     }
     button {
-      background: linear-gradient(120deg, #22c55e, #f97316, #ef4444);
-      color: #052e16;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      box-shadow: 0 6px 16px rgba(244, 63, 94, 0.36);
+      background: linear-gradient(120deg, #22c55e, #16a34a);
+      color: #0f331a;
+      font-weight: 600;
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4);
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(14, 165, 233, 0.35);
-      background: linear-gradient(120deg, #34d399, #fbbf24, #ef4444);
+      box-shadow: 0 10px 20px rgba(21, 128, 61, 0.45);
+      background: linear-gradient(120deg, #34d399, #22c55e);
     }
     button:focus,
     button:active,
     button.active {
-      outline: 2px solid rgba(14, 165, 233, 0.9);
-      box-shadow: 0 0 10px rgba(14, 165, 233, 0.7);
+      outline: 2px solid rgba(255, 220, 128, 0.9);
+      box-shadow: 0 0 10px rgba(253, 224, 71, 0.7);
     }
     .card {
       border: 1px solid transparent;
       padding: 18px;
       margin-bottom: 18px;
       border-radius: 16px;
-      background: rgba(255, 255, 255, 0.9);
-      border-image: linear-gradient(45deg, rgba(34, 197, 94, 0.9), rgba(14, 165, 233, 0.9)) 1;
-      box-shadow: 0 12px 25px rgba(14, 165, 233, 0.18);
-      position: relative;
-      overflow: hidden;
-    }
-    .card::after {
-      content: "🎅🎁";
-      position: absolute;
-      bottom: 10px;
-      right: 12px;
-      font-size: 20px;
-      opacity: 0.6;
+      background: rgba(255, 255, 255, 0.88);
+      border-image: linear-gradient(45deg, rgba(34, 197, 94, 0.9), rgba(132, 204, 22, 0.9)) 1;
+      box-shadow: 0 12px 25px rgba(21, 128, 61, 0.18);
     }
     .team {
       font-size: 22px;
@@ -339,10 +272,10 @@
     .tab-bar button {
       padding: 12px 18px;
       font-size: 18px;
-      border-bottom: 4px solid rgba(239, 68, 68, 0.8);
+      border-bottom: 4px solid rgba(34, 197, 94, 0.8);
     }
     .tab-bar button.active {
-      background: linear-gradient(120deg, #fbbf24, #ef4444);
+      background: linear-gradient(120deg, #34d399, #22c55e);
     }
     .division-tabs {
       margin-bottom: 15px;
@@ -372,9 +305,9 @@
       font-size: 14px;
     }
     .ranking-table th {
-      background: linear-gradient(120deg, #22c55e, #f97316);
-      color: #0f172a;
-      padding: 8px;
+      background: linear-gradient(120deg, #22c55e, #16a34a);
+      color: #0f331a;
+      padding: 6px;
     }
     .ranking-table td {
       border: 1px solid rgba(34, 197, 94, 0.2);
@@ -544,10 +477,9 @@
       </p>
     </div>
   </div>
-  <div class="holiday-banner">🎄☀️ Merry Aussie Summer Christmas! 🎅🏖️🍍</div>
   <div class='tab-bar'>
-    <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule 🎁🏖️</button>
-    <button id='liveTab' onclick="showTab('live')">Live results 🎄📺</button>
+    <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
+    <button id='liveTab' onclick="showTab('live')">Live results</button>
   </div>
   <div id="scheduleSection">
   <div class="filters">
@@ -555,8 +487,8 @@
     <select id="divisionFilter"></select>
     <select id="courtFilter"></select>
     <select id="dateFilter"></select>
-    <button onclick="resetFilters()">Reset 🔄🎄</button>
-    <button id="printScheduleBtn" onclick="printSchedulePdf()">Print Schedule 🎅📄</button>
+    <button onclick="resetFilters()">Reset</button>
+    <button id="printScheduleBtn" onclick="printSchedulePdf()">Print Schedule</button>
   </div>
   <div id="results"></div>
   </div>
