@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SparrowsVolleyball</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
@@ -283,8 +283,11 @@
     }
     .tab-bar button {
       padding: 12px 18px;
-      font-size: 18px;
+      font-size: 16px;
       border-bottom: 4px solid rgba(193, 18, 31, 0.85);
+      flex: 1 1 0;
+      text-align: center;
+      white-space: nowrap;
     }
     .tab-bar button.active {
       background: linear-gradient(120deg, #ff5a5f, #14b8a6);
@@ -461,10 +464,31 @@
       background: rgba(15, 81, 50, 0.6);
     }
 
+    .bracket-gallery {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .bracket-gallery img {
+      width: 100%;
+      max-width: 1200px;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 12px 24px rgba(12, 83, 40, 0.28);
+    }
+
     @media (max-width: 600px) {
       .site-header {
         flex-direction: column;
         align-items: flex-start;
+      }
+      .tab-bar {
+        flex-wrap: wrap;
+      }
+      .tab-bar button {
+        flex: 1 1 45%;
       }
     }
 
@@ -492,17 +516,18 @@
   <div class='tab-bar'>
     <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
     <button id='liveTab' onclick="showTab('live')">Live results</button>
+    <button id='bracketsTab' onclick="showTab('brackets')">Tournament Brackets</button>
   </div>
   <div id="scheduleSection">
-  <div class="filters">
-    <select id="teamFilter"></select>
-    <select id="divisionFilter"></select>
-    <select id="courtFilter"></select>
-    <select id="dateFilter"></select>
-    <button onclick="resetFilters()">Reset</button>
-    <button id="printScheduleBtn" onclick="printSchedulePdf()">Print Schedule</button>
-  </div>
-  <div id="results"></div>
+    <div class="filters">
+      <select id="teamFilter"></select>
+      <select id="divisionFilter"></select>
+      <select id="courtFilter"></select>
+      <select id="dateFilter"></select>
+      <button onclick="resetFilters()">Reset</button>
+      <button id="printScheduleBtn" onclick="printSchedulePdf()">Print Schedule</button>
+    </div>
+    <div id="results"></div>
   </div>
   <div id="liveResultsSection" style="display:none;">
     <div id="divisionTabs" class="division-tabs">
@@ -511,6 +536,13 @@
     </div>
     <button id="combineViewBtn">Combine Divisions Table View</button>
     <div id="divisionContent"></div>
+  </div>
+  <div id="bracketsSection" style="display:none;">
+    <div class="bracket-gallery">
+      <img src="content/img/Tournament_Brackets_1.png" alt="Tournament bracket 1">
+      <img src="content/img/Tournament_Brackets_2.png" alt="Tournament bracket 2">
+      <img src="content/img/Tournament_Brackets_3.png" alt="Tournament bracket 3">
+    </div>
   </div>
 
   <script>
@@ -528,8 +560,10 @@
     function showTab(tab) {
       document.getElementById("scheduleSection").style.display = tab === "schedule" ? "block" : "none";
       document.getElementById("liveResultsSection").style.display = tab === "live" ? "block" : "none";
+      document.getElementById("bracketsSection").style.display = tab === "brackets" ? "block" : "none";
       document.getElementById("scheduleTab").classList.toggle("active", tab === "schedule");
       document.getElementById("liveTab").classList.toggle("active", tab === "live");
+      document.getElementById("bracketsTab").classList.toggle("active", tab === "brackets");
       if (tab !== "live") highlightTeam(null);
     }
 
