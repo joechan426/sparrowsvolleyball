@@ -551,13 +551,28 @@
     let teamColorMap = {};
     let divisionColorMap = {};
     let highlightedTeamKey = null;
+    const bracketsEnabled = false;
     const colorPalette = [
       '#ff1744', '#008142', '#2979ff', '#ff9100', '#d500f9',
       '#f50057', '#651fff', '#00bfa5', '#ccbb00', '#459810',
       '#00b0ff', '#ff4081'
     ];
     const apiUrl = "https://script.google.com/macros/s/AKfycbzoFemvA6CPlYsvluZGuSNlYdD4pxzYL-FCXQExoOw7TM84f-tywKwHtL7ZmH2MG-k/exec";
+    if (!bracketsEnabled) {
+      const bracketsTab = document.getElementById("bracketsTab");
+      const bracketsSection = document.getElementById("bracketsSection");
+      if (bracketsTab) {
+        bracketsTab.style.display = "none";
+        bracketsTab.setAttribute("aria-hidden", "true");
+        bracketsTab.setAttribute("tabindex", "-1");
+      }
+      if (bracketsSection) {
+        bracketsSection.setAttribute("hidden", "true");
+      }
+    }
+
     function showTab(tab) {
+      if (tab === "brackets" && !bracketsEnabled) tab = "schedule";
       document.getElementById("scheduleSection").style.display = tab === "schedule" ? "block" : "none";
       document.getElementById("liveResultsSection").style.display = tab === "live" ? "block" : "none";
       document.getElementById("bracketsSection").style.display = tab === "brackets" ? "block" : "none";
