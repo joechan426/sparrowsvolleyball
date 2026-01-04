@@ -1801,7 +1801,12 @@
 
     async function submitScores(date, index) {
       showLoading("Submitting...");
-      const params = new URLSearchParams({ action: "submitScores", date, index });
+      const params = new URLSearchParams({
+        action: "submitScores",
+        tournament: currentTournament,
+        date,
+        index
+      });
       for (let i = 1; i <= 3; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
