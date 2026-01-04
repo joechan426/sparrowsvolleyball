@@ -852,6 +852,35 @@
       return { name: "", subtitle: "" };
     }
 
+    const TOURNAMENT_LIST_CACHE_KEY = "sparrows:tournaments:list";
+    const TOURNAMENT_LIST_CACHE_TTL = 60 * 1000;
+
+    function readTournamentListCache() {
+      if (typeof localStorage === "undefined") return null;
+      try {
+        const raw = localStorage.getItem(TOURNAMENT_LIST_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.tournaments)) return null;
+        return parsed;
+      } catch (err) {
+        console.warn("Failed to read tournament cache", err);
+        return null;
+      }
+    }
+
+    function writeTournamentListCache(tournaments) {
+      if (typeof localStorage === "undefined") return;
+      try {
+        localStorage.setItem(TOURNAMENT_LIST_CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          tournaments
+        }));
+      } catch (err) {
+        console.warn("Failed to write tournament cache", err);
+      }
+    }
+
     async function fetchTournamentMeta(name) {
       if (tournamentMetaCache[name]) return tournamentMetaCache[name];
       const res = await fetch(`${apiUrl}?tournament=${encodeURIComponent(name)}`, { cache: "no-store" });
@@ -878,23 +907,13 @@
       errEl.style.display = "none";
       errEl.textContent = "";
 
-      if (showLoader) showLoading("Loading tournaments...");
-      try {
-        const res = await fetch(`${apiUrl}?action=listTournaments`);
-        const json = await res.json();
+      const cached = readTournamentListCache();
+      const hasCachedData = cached && Array.isArray(cached.tournaments) && cached.tournaments.length > 0;
+      const cacheAge = cached && cached.timestamp ? Date.now() - cached.timestamp : Infinity;
+      const isCacheStale = cacheAge > TOURNAMENT_LIST_CACHE_TTL;
 
-        if (!json || !json.ok) {
-          throw new Error((json && json.error) ? json.error : "Failed to load tournaments");
-        }
-
-        if (!Array.isArray(json.tournaments) || json.tournaments.length === 0) {
-          throw new Error("No tournaments found. Check your Config sheet (enabled=TRUE) and make sure this web app is deployed.");
-        }
-
-        const normalized = json.tournaments
-          .map(normalizeTournamentEntry)
-          .filter(t => t && t.name);
-
+      function renderTournaments(normalized) {
+        listEl.innerHTML = "";
         normalized.forEach(({ name, subtitle }) => {
           const card = document.createElement("div");
           card.className = "tournament-card";
@@ -922,12 +941,46 @@
 
           listEl.appendChild(card);
         });
+      }
+
+      if (hasCachedData) {
+        renderTournaments(cached.tournaments);
+      }
+
+      const shouldFetch = !hasCachedData || isCacheStale;
+      const loaderActive = showLoader && shouldFetch;
+      if (loaderActive) showLoading("Loading tournaments...");
+
+      try {
+        if (!shouldFetch) return;
+
+        const res = await fetch(`${apiUrl}?action=listTournaments`, { cache: "no-store" });
+        const json = await res.json();
+
+        if (!json || !json.ok) {
+          throw new Error((json && json.error) ? json.error : "Failed to load tournaments");
+        }
+
+        if (!Array.isArray(json.tournaments) || json.tournaments.length === 0) {
+          throw new Error("No tournaments found. Check your Config sheet (enabled=TRUE) and make sure this web app is deployed.");
+        }
+
+        const normalized = json.tournaments
+          .map(normalizeTournamentEntry)
+          .filter(t => t && t.name);
+
+        writeTournamentListCache(normalized);
+        renderTournaments(normalized);
 
       } catch (err) {
-        errEl.style.display = "block";
-        errEl.textContent = String(err && err.message ? err.message : err);
+        if (!hasCachedData) {
+          errEl.style.display = "block";
+          errEl.textContent = String(err && err.message ? err.message : err);
+        } else {
+          console.warn("Failed to refresh tournaments", err);
+        }
       } finally {
-        if (showLoader) hideLoading();
+        if (loaderActive) hideLoading();
       }
     }
 
