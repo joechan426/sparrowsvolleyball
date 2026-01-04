@@ -1814,15 +1814,17 @@
       const date = document.getElementById("dateFilter").value;
 
       const matrixMode = !team && !division && !court;
+
+      const headerEl = document.querySelector('#appPage .header-text h1');
+      const header = (headerEl && headerEl.textContent.trim()) || currentTournament || 'Schedule';
       const doc = new jsPDF({ orientation: matrixMode ? 'landscape' : 'portrait' });
+      doc.setProperties({ title: header });
 
       const headers = ['Date', 'Time', 'Team A', 'Team B', 'Court', 'Duty', 'Division'];
       const allFiltersClear = !team && !division && !court && !date;
       const dateList = date
         ? [date]
         : Object.keys(scheduleData).sort((a, b) => new Date(a) - new Date(b));
-
-      const header = document.querySelector('h1').textContent;
       const descEl = document.querySelector('p.description');
       const desc = descEl ? descEl.innerText.replace(/\n+/g, ' ') : '';
       const descLines = doc.splitTextToSize(desc, doc.internal.pageSize.getWidth() - 28);
