@@ -84,13 +84,15 @@
     .tournament-logo-text {
       color: var(--pine);
       font-weight: 700;
-      font-size: 16px;
-      line-height: 1.2;
+      font-size: 15px;
+      line-height: 1.35;
       text-align: left;
       margin-left: 4px;
       padding-bottom: 6px;
       align-self: flex-start;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 100%;
     }
     .header-text {
       display: flex;
@@ -552,6 +554,9 @@
       .site-header {
         flex-direction: column;
         align-items: flex-start;
+      }
+      .tournament-logo-text {
+        font-size: 14px;
       }
       .tab-secondary {
         flex-direction: column;
