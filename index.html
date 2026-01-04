@@ -62,7 +62,7 @@
     .tournament-logo-group {
       display: flex;
       justify-content: flex-start;
-      align-items: center;
+      align-items: flex-end;
       gap: 12px;
       margin-bottom: 12px;
     }
@@ -74,6 +74,17 @@
       height: 72px;
       object-fit: contain;
       filter: drop-shadow(0 6px 10px rgba(193, 18, 31, 0.35));
+    }
+    .tournament-logo-text {
+      color: var(--pine);
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 1.2;
+      text-align: left;
+      margin-left: 4px;
+      padding-bottom: 6px;
+      align-self: flex-end;
+      white-space: nowrap;
     }
     .header-text {
       display: flex;
@@ -537,9 +548,10 @@
     .tournament-page {
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       padding: 24px;
+      padding-top: 32px;
     }
     .tournament-page-inner {
       width: 100%;
@@ -619,6 +631,7 @@
         <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
           <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
         </a>
+        <div class="tournament-logo-text">Sparrowsvolleyball Tournament Live Results</div>
       </div>
       <h1 class="tournament-title">Select a tournament</h1>
       <p class="tournament-subtitle">Choose which event you want to view / submit results for.</p>
