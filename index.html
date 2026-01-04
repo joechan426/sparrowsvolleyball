@@ -1019,7 +1019,7 @@
 
       let scheduleError = null;
       try {
-        await fetchSchedule();
+        await fetchSchedule(name);
       } catch (err) {
         scheduleError = err;
       } finally {
@@ -1322,19 +1322,24 @@
       assignTeamColors();
     }
 
-    async function fetchSchedule() {
-      const cached = readScheduleCache(currentTournament);
+    async function fetchSchedule(tournamentName = currentTournament) {
+      const requestedTournament = tournamentName || "";
+      if (!requestedTournament) return;
+
+      const cached = readScheduleCache(requestedTournament);
       const hasCachedData = cached && cached.data;
       const isCacheFresh = hasCachedData && (Date.now() - cached.timestamp < SCHEDULE_CACHE_TTL_MS);
-      if (hasCachedData) {
+      if (hasCachedData && requestedTournament === currentTournament) {
         applySchedulePayload(cached.data);
       }
 
       const fetchAndApply = async () => {
-        const res = await fetch(`${apiUrl}?tournament=${encodeURIComponent(currentTournament)}`, { cache: "no-store" });
+        const res = await fetch(`${apiUrl}?tournament=${encodeURIComponent(requestedTournament)}`, { cache: "no-store" });
         const json = await res.json();
-        applySchedulePayload(json);
-        writeScheduleCache(currentTournament, json);
+        writeScheduleCache(requestedTournament, json);
+        if (requestedTournament === currentTournament) {
+          applySchedulePayload(json);
+        }
       };
 
       if (isCacheFresh) {
