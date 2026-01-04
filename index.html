@@ -329,7 +329,12 @@
       background: linear-gradient(120deg, #ff5a5f, #14b8a6);
     }
     .all-tournaments-btn {
-      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: auto;
+      max-width: 100%;
       padding: 14px 18px;
       font-size: 17px;
       background: linear-gradient(120deg, #ffd166, #ff9f1c);
@@ -338,10 +343,15 @@
       box-shadow: 0 12px 24px rgba(193, 18, 31, 0.18);
       letter-spacing: 0.3px;
       text-align: center;
+      white-space: nowrap;
     }
     .all-tournaments-btn:hover {
       background: linear-gradient(120deg, #ffe08a, #ffb347);
       box-shadow: 0 14px 26px rgba(193, 18, 31, 0.28);
+    }
+    .all-tournaments-btn .all-tournaments-line {
+      display: inline;
+      white-space: nowrap;
     }
     .division-tabs {
       margin-bottom: 15px;
@@ -541,6 +551,28 @@
       .tab-secondary button {
         width: 100%;
       }
+      .all-tournaments-btn {
+        width: 100%;
+        flex-direction: column;
+        font-size: 15px;
+        white-space: normal;
+        line-height: 1.3;
+      }
+      .all-tournaments-btn .all-tournaments-line {
+        display: block;
+      }
+    }
+    @media (max-width: 1024px) and (min-width: 601px) {
+      .all-tournaments-btn {
+        width: 100%;
+        flex-direction: column;
+        font-size: 16px;
+        white-space: normal;
+        line-height: 1.3;
+      }
+      .all-tournaments-btn .all-tournaments-line {
+        display: block;
+      }
     }
 
   
@@ -660,7 +692,10 @@
   </div>
   <div class='tab-bar'>
     <div class="tab-primary">
-      <button id="backToTournamentsBtn" class="all-tournaments-btn">Click here to check all Sparrows ongoing tournament</button>
+      <button id="backToTournamentsBtn" class="all-tournaments-btn">
+        <span class="all-tournaments-line">Click here to check</span>
+        <span class="all-tournaments-line">all Sparrows ongoing tournament</span>
+      </button>
     </div>
     <div class="tab-secondary">
       <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
