@@ -960,6 +960,9 @@
       if (showLoader) showLoading("Data retrieving");
       showAppPage();
       showTab("schedule");
+      // Begin loading live results in the background so they are ready
+      // whenever the user visits the Live Results tab.
+      ensureLiveResultsLoaded();
 
       let scheduleError = null;
       try {
