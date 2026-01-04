@@ -61,10 +61,16 @@
     }
     .tournament-logo-group {
       display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .tournament-logo-row {
+      display: flex;
       justify-content: flex-start;
       align-items: flex-end;
       gap: 12px;
-      margin-bottom: 12px;
     }
     .tournament-logo-link {
       display: inline-flex;
@@ -78,12 +84,12 @@
     .tournament-logo-text {
       color: var(--pine);
       font-weight: 700;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1.2;
       text-align: left;
       margin-left: 4px;
       padding-bottom: 6px;
-      align-self: flex-end;
+      align-self: flex-start;
       white-space: nowrap;
     }
     .header-text {
@@ -657,12 +663,14 @@
   <div id="tournamentPage" class="tournament-page">
     <div class="tournament-page-inner">
       <div class="tournament-logo-group">
-        <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
-          <img src="content/img/christmas_sparrow.png" alt="Sparrows Volleyball holiday logo" class="tournament-logo" />
-        </a>
-        <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
-          <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
-        </a>
+        <div class="tournament-logo-row">
+          <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
+            <img src="content/img/christmas_sparrow.png" alt="Sparrows Volleyball holiday logo" class="tournament-logo" />
+          </a>
+          <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
+            <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
+          </a>
+        </div>
         <div class="tournament-logo-text">Sparrowsvolleyball Tournament Live Results</div>
       </div>
       <h1 class="tournament-title">Select a tournament</h1>
