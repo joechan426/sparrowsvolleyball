@@ -652,6 +652,7 @@
       errEl.style.display = "none";
       errEl.textContent = "";
 
+      showLoading("Loading tournaments...");
       try {
         const res = await fetch(`${apiUrl}?action=listTournaments`);
         const json = await res.json();
@@ -683,6 +684,8 @@
       } catch (err) {
         errEl.style.display = "block";
         errEl.textContent = String(err && err.message ? err.message : err);
+      } finally {
+        hideLoading();
       }
     }
 
