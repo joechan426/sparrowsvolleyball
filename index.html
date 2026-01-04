@@ -61,10 +61,13 @@
     }
     .tournament-logo-group {
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
+    }
+    .tournament-logo-link {
+      display: inline-flex;
     }
     .tournament-logo {
       width: 72px;
@@ -609,9 +612,13 @@
 <body>
   <div id="tournamentPage" class="tournament-page">
     <div class="tournament-page-inner">
-      <div class="tournament-logo-group" aria-hidden="true">
-        <img src="content/img/christmas_sparrow.png" alt="Sparrows Volleyball holiday logo" class="tournament-logo" />
-        <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
+      <div class="tournament-logo-group">
+        <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
+          <img src="content/img/christmas_sparrow.png" alt="Sparrows Volleyball holiday logo" class="tournament-logo" />
+        </a>
+        <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
+          <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
+        </a>
       </div>
       <h1 class="tournament-title">Select a tournament</h1>
       <p class="tournament-subtitle">Choose which event you want to view / submit results for.</p>
