@@ -269,6 +269,47 @@
       margin-bottom: 4px;
       font-weight: 600;
     }
+    .loading-spinner {
+      width: 96px;
+      height: 96px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 4px 10px rgba(255, 247, 237, 0.55));
+    }
+    .loading-spinner .loading-sprite {
+      width: var(--loading-sprite-size, 88px);
+      height: var(--loading-sprite-size, 88px);
+      display: block;
+      background-image: url('content/img/spritesheet.png');
+      background-repeat: no-repeat;
+      background-size: calc(var(--loading-sprite-size, 88px) * 3) var(--loading-sprite-size, 88px);
+      background-position: 0 0;
+      image-rendering: crisp-edges;
+      animation: volleyball-sprite 0.9s steps(2) infinite;
+    }
+    .loading-text {
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      color: var(--pine);
+    }
+    .inline-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      text-align: center;
+      padding: 24px;
+      min-height: 180px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 209, 102, 0.65);
+      border-radius: 16px;
+      box-shadow: 0 10px 20px rgba(12, 83, 40, 0.18);
+    }
+    .inline-loading .loading-text {
+      color: var(--pine);
+    }
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -290,28 +331,8 @@
       gap: 12px;
       text-align: center;
     }
-    .loading-overlay .loading-spinner {
-      width: 96px;
-      height: 96px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      filter: drop-shadow(0 4px 10px rgba(255, 247, 237, 0.55));
-    }
-    .loading-overlay .loading-spinner .loading-sprite {
-      width: var(--loading-sprite-size, 88px);
-      height: var(--loading-sprite-size, 88px);
-      display: block;
-      background-image: url('content/img/spritesheet.png');
-      background-repeat: no-repeat;
-      background-size: calc(var(--loading-sprite-size, 88px) * 3) var(--loading-sprite-size, 88px);
-      background-position: 0 0;
-      image-rendering: crisp-edges;
-      animation: volleyball-sprite 0.9s steps(2) infinite;
-    }
     .loading-overlay .loading-text {
-      font-size: 20px;
-      letter-spacing: 0.5px;
+      color: #fffaf2;
     }
     @keyframes volleyball-sprite {
       from { background-position: 0 0; }
@@ -901,6 +922,15 @@
       }
     }
 
+    function clearLiveResultsUI() {
+      const regRow = document.getElementById('divisionRowRegular');
+      const finRow = document.getElementById('divisionRowFinals');
+      const container = document.getElementById('divisionContent');
+      if (regRow) regRow.innerHTML = '';
+      if (finRow) finRow.innerHTML = '';
+      if (container) container.innerHTML = '';
+    }
+
     async function enterTournament(name, { showLoader = true } = {}) {
       currentTournament = name;
       updateTournamentInUrl(name);
@@ -911,6 +941,12 @@
       selectedTeam = "";
       selectedDivision = "";
       selectedCourt = "";
+      liveResults = {};
+      currentDivision = null;
+      combinedDivisions = null;
+      liveResultsLoadedFor = null;
+      liveResultsLoadingPromise = null;
+      clearLiveResultsUI();
 
       if (showLoader) showLoading("Data retrieving");
       showAppPage();
@@ -926,10 +962,6 @@
       }
 
       if (scheduleError) throw scheduleError;
-
-      fetchResults().catch(err => {
-        console.error("Failed to load results in background", err);
-      });
     }
 
     function bindBackButton() {
@@ -962,6 +994,9 @@
       document.getElementById("scheduleTab").classList.toggle("active", tab === "schedule");
       document.getElementById("liveTab").classList.toggle("active", tab === "live");
       document.getElementById("bracketsTab").classList.toggle("active", tab === "brackets");
+      if (tab === "live") {
+        ensureLiveResultsLoaded();
+      }
       if (tab !== "live") highlightTeam(null);
     }
 
@@ -1254,9 +1289,47 @@
     let liveResults = {};
     let currentDivision = null;
     let combinedDivisions = null;
-    async function fetchResults() {
-      const res = await fetch(`${apiUrl}?action=getResults&tournament=${encodeURIComponent(currentTournament)}`, { cache: 'no-store' });
-      liveResults = await res.json();
+    let liveResultsLoadedFor = null;
+    let liveResultsLoadingPromise = null;
+
+    function showLiveResultsLoading(message = "Loading live results...") {
+      const container = document.getElementById('divisionContent');
+      if (container) {
+        container.innerHTML = `
+          <div class="inline-loading" role="status" aria-live="polite">
+            <div class="loading-spinner"><div class="loading-sprite"></div></div>
+            <div class="loading-text">${message}</div>
+          </div>
+        `;
+      }
+    }
+
+    function ensureLiveResultsLoaded() {
+      if (liveResultsLoadedFor === currentTournament || liveResultsLoadingPromise) return;
+      clearLiveResultsUI();
+      showLiveResultsLoading();
+      const requestedTournament = currentTournament;
+      liveResultsLoadingPromise = fetchResults(requestedTournament)
+        .then(success => {
+          if (success && requestedTournament === currentTournament) {
+            liveResultsLoadedFor = requestedTournament;
+          }
+        })
+        .catch(err => {
+          console.error("Failed to load live results", err);
+          const container = document.getElementById('divisionContent');
+          if (container) {
+            container.innerHTML = '<div class=\"tournament-error\">Failed to load live results. Please try again.</div>';
+          }
+        })
+        .finally(() => { liveResultsLoadingPromise = null; });
+    }
+
+    async function fetchResults(tournamentName = currentTournament) {
+      const res = await fetch(`${apiUrl}?action=getResults&tournament=${encodeURIComponent(tournamentName)}`, { cache: 'no-store' });
+      const parsed = await res.json();
+      if (tournamentName !== currentTournament) return false;
+      liveResults = parsed;
       if (!liveResults.schedule) {
         liveResults = { schedule: liveResults };
       }
@@ -1266,10 +1339,10 @@
       }
       const regRow = document.getElementById('divisionRowRegular');
       const finRow = document.getElementById('divisionRowFinals');
-      regRow.innerHTML = '';
-      finRow.innerHTML = '';
+      if (regRow) regRow.innerHTML = '';
+      if (finRow) finRow.innerHTML = '';
       const divisions = Object.keys(liveResults.divisions || {});
-      if (!divisions.length) return;
+      if (!divisions.length) return true;
       const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
       const sortedDivisions = divisions.slice().sort(collator.compare);
       const combineBtn = document.getElementById('combineViewBtn');
@@ -1290,6 +1363,7 @@
       } else {
         showDivision(currentDivision);
       }
+      return true;
     }
 
     function buildFinalsBracket(div) {
