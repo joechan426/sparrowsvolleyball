@@ -492,12 +492,99 @@
       }
     }
 
-  </style>
+  
+    /* ===== Tournament landing page ===== */
+    .tournament-page {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .tournament-hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 12px 26px rgba(12, 83, 40, 0.25);
+      border: 1px solid rgba(255, 209, 102, 0.6);
+    }
+    .tournament-hero-text h1 {
+      font-size: 28px;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      text-shadow: 2px 3px 12px rgba(193, 18, 31, 0.35), 0 0 16px rgba(255, 209, 102, 0.55);
+    }
+    .tournament-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .tournament-card {
+      padding: 18px;
+      border-radius: 16px;
+      background: linear-gradient(160deg, rgba(255, 247, 237, 0.96), rgba(255, 232, 200, 0.96));
+      border: 1px solid transparent;
+      border-image: linear-gradient(45deg, rgba(193, 18, 31, 0.75), rgba(15, 155, 104, 0.75)) 1;
+      box-shadow: 0 12px 25px rgba(12, 83, 40, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tournament-card .tournament-title {
+      font-weight: 700;
+      font-size: 18px;
+      color: #0f766e;
+    }
+    .tournament-card button {
+      width: 100%;
+    }
+    .tournament-error {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(193, 18, 31, 0.35);
+      color: #7f1d1d;
+      font-weight: 600;
+    }
+    .top-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-start;
+    }
+    .top-actions button {
+      padding: 8px 14px;
+      font-size: 14px;
+    }
+</style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <div class="site-header">
+  
+  <div id="tournamentPage" class="tournament-page">
+    <div class="tournament-hero">
+      <div class="logo-group">
+        <a href="https://sparrowsvolleyball.com.au/">
+          <img src="content/img/christmas_sparrow.png" alt="Sparrow" class="logo" />
+        </a>
+        <a href="https://sparrowsvolleyball.com.au/">
+          <img src="content/img/logo.png" alt="Logo" class="logo" />
+        </a>
+      </div>
+      <div class="tournament-hero-text">
+        <h1 style="margin:0;">Sparrows Volleyball</h1>
+        <p class="description" style="margin-bottom:0;">Select a tournament to view schedule and live results.</p>
+      </div>
+    </div>
+
+    <div id="tournamentList" class="tournament-list"></div>
+    <div id="tournamentError" class="tournament-error" style="display:none;"></div>
+  </div>
+
+  <div id="appPage" style="display:none;">
+<div class="site-header">
     <div class="logo-group">
       <a href="https://sparrowsvolleyball.com.au/">
         <img src="content/img/christmas_sparrow.png" alt="Sparrow" class="logo" />
@@ -511,6 +598,9 @@
       <p class="description">
       <br>
       </p>
+      <div class="top-actions">
+        <button id="backToTournamentsBtn" onclick="backToTournaments()">All tournaments</button>
+      </div>
     </div>
   </div>
   <div class='tab-bar'>
@@ -544,6 +634,8 @@
       <img src="content/img/Tournament_Brackets_3.png" alt="Tournament bracket 3">
     </div>
   </div>
+  </div>
+
 
   <script>
     let scheduleData = {};
@@ -557,7 +649,10 @@
       '#f50057', '#651fff', '#00bfa5', '#ccbb00', '#459810',
       '#00b0ff', '#ff4081'
     ];
-    const apiUrl = "https://script.google.com/macros/s/AKfycbzoFemvA6CPlYsvluZGuSNlYdD4pxzYL-FCXQExoOw7TM84f-tywKwHtL7ZmH2MG-k/exec";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbz-E2d0J8pHbD0HiQfJUHWhYinQFWG_Sv1ElYyE-yEbK83CMnDsB6AvCa1IPc-ZY-M/exec";
+    let currentTournament = "";
+    let liveRefreshTimer = null;
+
     if (!bracketsEnabled) {
       const bracketsTab = document.getElementById("bracketsTab");
       const bracketsSection = document.getElementById("bracketsSection");
@@ -580,6 +675,88 @@
       document.getElementById("liveTab").classList.toggle("active", tab === "live");
       document.getElementById("bracketsTab").classList.toggle("active", tab === "brackets");
       if (tab !== "live") highlightTeam(null);
+    }
+
+    // ===== Tournament landing / navigation =====
+    async function loadTournamentLanding() {
+      document.getElementById("tournamentPage").style.display = "block";
+      document.getElementById("appPage").style.display = "none";
+
+      const listEl = document.getElementById("tournamentList");
+      const errEl = document.getElementById("tournamentError");
+      listEl.innerHTML = "";
+      errEl.style.display = "none";
+      errEl.textContent = "";
+
+      showLoading("Loading tournaments...");
+      try {
+        const res = await fetch(`${apiUrl}?action=listTournaments`, { cache: "no-store" });
+        const json = await res.json();
+        hideLoading();
+
+        if (!json || !json.ok || !Array.isArray(json.tournaments) || !json.tournaments.length) {
+          errEl.style.display = "block";
+          errEl.textContent = (json && json.error) ? json.error : "No tournaments available.";
+          return;
+        }
+
+        json.tournaments.forEach((name) => {
+          const card = document.createElement("div");
+          card.className = "tournament-card";
+          card.innerHTML = `
+            <div class="tournament-title">${escapeHtml(name)}</div>
+            <button>Open</button>
+          `;
+          card.querySelector("button").addEventListener("click", () => enterTournament(name));
+          listEl.appendChild(card);
+        });
+
+      } catch (err) {
+        hideLoading();
+        errEl.style.display = "block";
+        errEl.textContent = "Failed to load tournaments.";
+        console.error(err);
+      }
+    }
+
+    function backToTournaments() {
+      if (liveRefreshTimer) {
+        clearInterval(liveRefreshTimer);
+        liveRefreshTimer = null;
+      }
+      currentDivision = null;
+      combinedDivisions = null;
+      highlightedTeamKey = null;
+      showTab("schedule");
+      loadTournamentLanding();
+    }
+
+    async function enterTournament(name) {
+      currentTournament = name;
+
+      document.getElementById("tournamentPage").style.display = "none";
+      document.getElementById("appPage").style.display = "block";
+
+      showLoading("Data retrieving");
+      showTab("schedule");
+      await Promise.all([fetchSchedule(), fetchResults()]);
+      hideLoading();
+
+      if (liveRefreshTimer) clearInterval(liveRefreshTimer);
+      liveRefreshTimer = setInterval(() => {
+        const liveSection = document.getElementById('liveResultsSection');
+        const isLiveVisible = liveSection && liveSection.style.display !== 'none';
+        if (isLiveVisible) fetchResults();
+      }, 30000);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
 
@@ -799,7 +976,7 @@
     }
 
     async function fetchSchedule() {
-      const res = await fetch(apiUrl, { cache: "no-store" });
+      const res = await fetch(`${apiUrl}?tournament=${encodeURIComponent(currentTournament)}`, { cache: "no-store" });
       const json = await res.json();
       scheduleData = {};
       teamNameMap = {};
@@ -844,7 +1021,7 @@
     let currentDivision = null;
     let combinedDivisions = null;
     async function fetchResults() {
-      const res = await fetch(`${apiUrl}?action=getResults`, { cache: 'no-store' });
+      const res = await fetch(`${apiUrl}?action=getResults&tournament=${encodeURIComponent(currentTournament)}`, { cache: 'no-store' });
       liveResults = await res.json();
       if (!liveResults.schedule) {
         liveResults = { schedule: liveResults };
@@ -1364,7 +1541,7 @@
       async function verifyPasscode(date, index, team, opponent) {
          showLoading("Verifying...");
          const input = document.getElementById("passcodeInput").value;
-         const url = `${apiUrl}?action=validate&date=${encodeURIComponent(date)}&index=${index}&passcode=${input}`;
+         const url = `${apiUrl}?action=validate&tournament=${encodeURIComponent(currentTournament)}&index=${index}&passcode=${encodeURIComponent(input)}`;
          const res = await fetch(url);
          const txt = await res.text();
          hideLoading();
@@ -1449,7 +1626,7 @@
 
     async function submitScores(date, index) {
       showLoading("Submitting...");
-      const params = new URLSearchParams({ action: "submitScores", date, index });
+      const params = new URLSearchParams({ action: "submitScores", tournament: currentTournament, index });
       for (let i = 1; i <= 3; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
@@ -1704,8 +1881,9 @@
     document.getElementById("dateFilter").addEventListener("change", filterResults);
     document.getElementById("combineViewBtn").addEventListener("click", openCombineDivisionsPopup);
     window.addEventListener("DOMContentLoaded", async () => {
-      showLoading("Data retrieving");
-      showTab("schedule");
+      // First screen: tournament selection
+      await loadTournamentLanding();
+    });showTab("schedule");
       await Promise.all([fetchSchedule(), fetchResults()]);
       hideLoading();
       setInterval(() => {
