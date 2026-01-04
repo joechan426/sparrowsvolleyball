@@ -762,6 +762,18 @@
     let currentTournament = "";
     const tournamentMetaCache = {};
 
+    function updateTournamentInUrl(name) {
+      const params = new URLSearchParams(window.location.search);
+      if (name) {
+        params.set("tournament", name);
+      } else {
+        params.delete("tournament");
+      }
+      const newQuery = params.toString();
+      const newUrl = newQuery ? `${window.location.pathname}?${newQuery}` : window.location.pathname;
+      history.replaceState({}, "", newUrl);
+    }
+
     function normalizeTournamentEntry(entry) {
       if (typeof entry === "string") {
         return { name: entry, subtitle: "" };
@@ -794,14 +806,14 @@
       document.getElementById("appPage").style.display = "block";
     }
 
-    async function loadTournamentList() {
+    async function loadTournamentList({ showLoader = true } = {}) {
       const listEl = document.getElementById("tournamentList");
       const errEl = document.getElementById("tournamentError");
       listEl.innerHTML = "";
       errEl.style.display = "none";
       errEl.textContent = "";
 
-      showLoading("Loading tournaments...");
+      if (showLoader) showLoading("Loading tournaments...");
       try {
         const res = await fetch(`${apiUrl}?action=listTournaments`);
         const json = await res.json();
@@ -850,12 +862,13 @@
         errEl.style.display = "block";
         errEl.textContent = String(err && err.message ? err.message : err);
       } finally {
-        hideLoading();
+        if (showLoader) hideLoading();
       }
     }
 
     async function enterTournament(name) {
       currentTournament = name;
+      updateTournamentInUrl(name);
 
       // Reset filters / in-memory state (safe even if already empty)
       scheduleData = {};
@@ -879,6 +892,7 @@
       const btn = document.getElementById("backToTournamentsBtn");
       if (!btn) return;
       btn.addEventListener("click", async () => {
+        updateTournamentInUrl(null);
         showTournamentPage();
         await loadTournamentList();
       });
@@ -2030,8 +2044,16 @@
     document.getElementById("combineViewBtn").addEventListener("click", openCombineDivisionsPopup);
     window.addEventListener("DOMContentLoaded", async () => {
       bindBackButton();
-      showTournamentPage();
-      await loadTournamentList();
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialTournament = urlParams.get("tournament");
+
+      if (initialTournament) {
+        await loadTournamentList({ showLoader: false });
+        await enterTournament(initialTournament);
+      } else {
+        showTournamentPage();
+        await loadTournamentList();
+      }
     });
 </script>
 
