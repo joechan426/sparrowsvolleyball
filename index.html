@@ -2103,7 +2103,6 @@
       if (initialTournament) {
         showLoading("Loading tournament...");
         try {
-          await loadTournamentList({ showLoader: false });
           await enterTournament(initialTournament, { showLoader: false });
         } finally {
           hideLoading();
