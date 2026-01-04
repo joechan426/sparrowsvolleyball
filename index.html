@@ -885,17 +885,20 @@
       showAppPage();
       showTab("schedule");
 
-      let loadError = null;
+      let scheduleError = null;
       try {
         await fetchSchedule();
-        await fetchResults();
       } catch (err) {
-        loadError = err;
+        scheduleError = err;
       } finally {
         if (showLoader) hideLoading();
       }
 
-      if (loadError) throw loadError;
+      if (scheduleError) throw scheduleError;
+
+      fetchResults().catch(err => {
+        console.error("Failed to load results in background", err);
+      });
     }
 
     function bindBackButton() {
