@@ -818,6 +818,15 @@
       }
     }
 
+    function clearScheduleCache(tournament) {
+      if (!tournament || typeof localStorage === "undefined") return;
+      try {
+        localStorage.removeItem(getScheduleCacheKey(tournament));
+      } catch (err) {
+        console.warn("Failed to clear schedule cache", err);
+      }
+    }
+
     function updateTournamentInUrl(name) {
       const params = new URLSearchParams(window.location.search);
       if (name) {
@@ -1950,6 +1959,7 @@
       hideLoading();
       if (txt === "SUBMIT_OK") {
         alert("Result submitted successfully!");
+        clearScheduleCache(currentTournament);
         location.reload();
       } else {
         alert("Error submitting result.");
