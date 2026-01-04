@@ -59,6 +59,19 @@
       object-fit: contain;
       filter: drop-shadow(0 6px 10px rgba(193, 18, 31, 0.35));
     }
+    .tournament-logo-group {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .tournament-logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 10px rgba(193, 18, 31, 0.35));
+    }
     .header-text {
       display: flex;
       flex-direction: column;
@@ -596,6 +609,10 @@
 <body>
   <div id="tournamentPage" class="tournament-page">
     <div class="tournament-page-inner">
+      <div class="tournament-logo-group" aria-hidden="true">
+        <img src="content/img/christmas_sparrow.png" alt="Sparrows Volleyball holiday logo" class="tournament-logo" />
+        <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
+      </div>
       <h1 class="tournament-title">Select a tournament</h1>
       <p class="tournament-subtitle">Choose which event you want to view / submit results for.</p>
       <div id="tournamentList" class="tournament-list"></div>
