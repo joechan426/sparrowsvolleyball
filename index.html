@@ -866,7 +866,7 @@
       }
     }
 
-    async function enterTournament(name) {
+    async function enterTournament(name, { showLoader = true } = {}) {
       currentTournament = name;
       updateTournamentInUrl(name);
 
@@ -877,14 +877,14 @@
       selectedDivision = "";
       selectedCourt = "";
 
-      showLoading("Data retrieving");
+      if (showLoader) showLoading("Data retrieving");
       showAppPage();
       showTab("schedule");
 
       try {
         await Promise.all([fetchSchedule(), fetchResults()]);
       } finally {
-        hideLoading();
+        if (showLoader) hideLoading();
       }
     }
 
@@ -2050,8 +2050,13 @@
       const initialTournament = urlParams.get("tournament");
 
       if (initialTournament) {
-        await loadTournamentList({ showLoader: false });
-        await enterTournament(initialTournament);
+        showLoading("Loading tournament...");
+        try {
+          await loadTournamentList({ showLoader: false });
+          await enterTournament(initialTournament, { showLoader: false });
+        } finally {
+          hideLoading();
+        }
       } else {
         showTournamentPage();
         await loadTournamentList();
