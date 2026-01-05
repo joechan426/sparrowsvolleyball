@@ -8,21 +8,25 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
     :root {
-      --sky: #bde8ff;
-      --sea: #7dd3fc;
-      --sand: #ffe8c8;
-      --pine: #0f5132;
-      --cherry: #c1121f;
+      --sky: #b8f3ff;
+      --sea: #31d1cb;
+      --sand: #ffe7a8;
+      --pine: #0b5b53;
+      --cherry: #ff6b6b;
       --gold: #ffd166;
-      --shell: #fff7ed;
+      --shell: #fff9ed;
+      --sunset: #ff9f70;
+      --lagoon: #12c4a0;
       --loading-sprite-size: 88px;
     }
     body {
       font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(180deg, rgba(189, 232, 255, 0.95) 0%, rgba(125, 211, 252, 0.9) 45%, rgba(255, 232, 200, 0.95) 100%),
-                  radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35) 0, rgba(255, 255, 255, 0) 35%),
-                  radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.35) 0, rgba(255, 255, 255, 0) 35%),
-                  repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.12) 0, rgba(255, 255, 255, 0.12) 6px, rgba(0, 0, 0, 0) 6px, rgba(0, 0, 0, 0) 12px);
+      background:
+        radial-gradient(circle at 18% 16%, rgba(255, 227, 150, 0.42) 0, rgba(255, 227, 150, 0) 38%),
+        radial-gradient(circle at 82% 12%, rgba(255, 166, 158, 0.38) 0, rgba(255, 166, 158, 0) 36%),
+        radial-gradient(circle at 50% 96%, rgba(49, 209, 203, 0.22) 0, rgba(49, 209, 203, 0) 46%),
+        linear-gradient(180deg, rgba(184, 243, 255, 0.95) 0%, rgba(104, 228, 210, 0.85) 45%, rgba(255, 231, 168, 0.94) 100%),
+        repeating-linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0, rgba(255, 255, 255, 0.1) 8px, rgba(0, 0, 0, 0) 8px, rgba(0, 0, 0, 0) 16px);
       background-attachment: fixed;
       margin: 0;
       padding: 24px;
@@ -35,11 +39,11 @@
       color: var(--cherry);
       letter-spacing: 1px;
       text-transform: uppercase;
-      text-shadow: 2px 3px 12px rgba(193, 18, 31, 0.45), 0 0 16px rgba(255, 209, 102, 0.75);
+      text-shadow: 0 3px 16px rgba(255, 159, 112, 0.6), 0 0 24px rgba(18, 196, 160, 0.45);
     }
     p.description {
       margin-top: 0;
-      color: #0f766e;
+      color: #0c7c6f;
       font-size: 15px;
       line-height: 1.6;
     }
@@ -58,7 +62,7 @@
       width: 60px;
       height: 60px;
       object-fit: contain;
-      filter: drop-shadow(0 6px 10px rgba(193, 18, 31, 0.35));
+      filter: drop-shadow(0 6px 10px rgba(18, 196, 160, 0.28));
     }
     .tournament-logo-group {
       display: flex;
@@ -80,7 +84,7 @@
       width: 72px;
       height: 72px;
       object-fit: contain;
-      filter: drop-shadow(0 6px 10px rgba(193, 18, 31, 0.35));
+      filter: drop-shadow(0 6px 10px rgba(18, 196, 160, 0.28));
     }
     .tournament-logo-text {
       color: var(--pine);
@@ -107,14 +111,14 @@
       gap: 10px;
       padding: 16px;
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.72);
-      box-shadow: 0 12px 26px rgba(12, 83, 40, 0.25);
-      border: 1px solid rgba(255, 209, 102, 0.6);
+      background: linear-gradient(135deg, rgba(255, 249, 237, 0.9), rgba(184, 243, 255, 0.88));
+      box-shadow: 0 12px 26px rgba(12, 83, 40, 0.2), 0 6px 14px rgba(255, 159, 112, 0.25);
+      border: 1px solid rgba(255, 209, 102, 0.8);
     }
     select {
       background: rgba(255, 255, 255, 0.9);
       color: var(--pine);
-      box-shadow: inset 0 1px 3px rgba(15, 81, 50, 0.22);
+      box-shadow: inset 0 1px 3px rgba(18, 196, 160, 0.22);
     }
     select, button {
       padding: 10px 14px;
@@ -123,17 +127,18 @@
       border: none;
     }
     button {
-      background: linear-gradient(120deg, #d12c2c, #0f9b68);
+      background: linear-gradient(120deg, var(--sunset), var(--lagoon));
       color: #fffaf2;
       font-weight: 700;
-      box-shadow: 0 6px 16px rgba(15, 81, 50, 0.35);
+      box-shadow: 0 6px 16px rgba(18, 196, 160, 0.3);
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
     }
     button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(193, 18, 31, 0.35);
-      background: linear-gradient(120deg, #ff5a5f, #14b8a6);
+      box-shadow: 0 10px 24px rgba(255, 159, 112, 0.38);
+      filter: saturate(1.08);
+      background: linear-gradient(120deg, #ff7f6a, #18c29c);
     }
     button:focus,
     button:active,
@@ -146,34 +151,34 @@
       padding: 18px;
       margin-bottom: 18px;
       border-radius: 16px;
-      background: linear-gradient(160deg, rgba(255, 247, 237, 0.96), rgba(255, 232, 200, 0.96));
-      border-image: linear-gradient(45deg, rgba(193, 18, 31, 0.85), rgba(15, 155, 104, 0.85)) 1;
-      box-shadow: 0 12px 25px rgba(12, 83, 40, 0.22);
+      background: linear-gradient(160deg, rgba(255, 249, 237, 0.95), rgba(184, 243, 255, 0.7));
+      border-image: linear-gradient(45deg, rgba(255, 159, 112, 0.9), rgba(18, 196, 160, 0.85)) 1;
+      box-shadow: 0 12px 25px rgba(12, 83, 40, 0.2), 0 6px 16px rgba(255, 159, 112, 0.18);
     }
     .team {
       font-size: 22px;
       font-weight: 700;
-      color: #0f766e;
+      color: #0b6b5f;
     }
     .time {
       font-size: 14px;
       margin-top: 4px;
-      color: #1d4ed8;
+      color: #008ecf;
     }
     .location {
       font-size: 14px;
       margin-top: 4px;
-      color: #c1121f;
+      color: #ff6b6b;
     }
     .duty {
       font-size: 14px;
       margin-top: 4px;
-      color: #0ea5e9;
+      color: #0aa6c8;
     }
     .match-date {
       font-size: 14px;
       margin-top: 4px;
-      color: var(--pine);
+      color: #0f745f;
     }
     .popup, .overlay {
       position: fixed;
@@ -181,7 +186,7 @@
       width: 100%; height: 100%;
     }
     .overlay {
-      background: rgba(12, 83, 40, 0.35);
+      background: rgba(18, 196, 160, 0.35);
       z-index: 100;
     }
     .popup {
@@ -261,7 +266,7 @@
     }
     .division {
       display: inline-block;
-      background: linear-gradient(120deg, rgba(15, 155, 104, 0.2), rgba(193, 18, 31, 0.2));
+      background: linear-gradient(120deg, rgba(18, 196, 160, 0.28), rgba(255, 111, 97, 0.28));
       color: var(--pine);
       padding: 4px 12px;
       border-radius: 999px;
@@ -302,10 +307,10 @@
       text-align: center;
       padding: 24px;
       min-height: 180px;
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid rgba(255, 209, 102, 0.65);
       border-radius: 16px;
-      box-shadow: 0 10px 20px rgba(12, 83, 40, 0.18);
+      box-shadow: 0 10px 20px rgba(12, 83, 40, 0.18), 0 6px 14px rgba(255, 159, 112, 0.15);
     }
     .inline-loading .loading-text {
       color: var(--pine);
@@ -316,7 +321,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(12, 83, 40, 0.55);
+      background: rgba(18, 196, 160, 0.55);
       color: #fffaf2;
       display: flex;
       justify-content: center;
@@ -358,12 +363,12 @@
       flex: 1 1 0;
       padding: 12px 18px;
       font-size: 16px;
-      border-bottom: 4px solid rgba(193, 18, 31, 0.85);
+      border-bottom: 4px solid rgba(255, 111, 97, 0.85);
       text-align: center;
       white-space: nowrap;
     }
     .tab-secondary button.active {
-      background: linear-gradient(120deg, #ff5a5f, #14b8a6);
+      background: linear-gradient(120deg, #ff7f6a, #18c29c);
     }
     .all-tournaments-btn {
       display: inline-flex;
@@ -374,17 +379,17 @@
       max-width: 100%;
       padding: 14px 18px;
       font-size: 17px;
-      background: linear-gradient(120deg, #ffd166, #ff9f1c);
-      color: #5c2c00;
+      background: linear-gradient(120deg, #ffe08a, #ff9364);
+      color: #6b2c00;
       border-bottom: none;
-      box-shadow: 0 12px 24px rgba(193, 18, 31, 0.18);
+      box-shadow: 0 12px 24px rgba(255, 159, 112, 0.25);
       letter-spacing: 0.3px;
       text-align: center;
       white-space: nowrap;
     }
     .all-tournaments-btn:hover {
-      background: linear-gradient(120deg, #ffe08a, #ffb347);
-      box-shadow: 0 14px 26px rgba(193, 18, 31, 0.28);
+      background: linear-gradient(120deg, #fff0b3, #ffad7e);
+      box-shadow: 0 14px 26px rgba(255, 159, 112, 0.32);
     }
     .all-tournaments-btn .all-tournaments-line {
       display: inline;
@@ -403,13 +408,13 @@
       color: #fffaf2;
     }
     .division-row button.active {
-      background: linear-gradient(120deg, #ff5a5f, #14b8a6);
+      background: linear-gradient(120deg, #ff7f6a, #18c29c);
     }
     .finals-row button {
-      background: linear-gradient(120deg, #0ea5e9, #0f9b68);
+      background: linear-gradient(120deg, #12c4a0, #1d9df2);
     }
     .finals-row button.active {
-      background: linear-gradient(120deg, #14b8a6, #0284c7);
+      background: linear-gradient(120deg, #0fd3bb, #1a86d1);
     }
     .ranking-table {
       width: 100%;
@@ -418,19 +423,19 @@
       font-size: 14px;
     }
     .ranking-table th {
-      background: linear-gradient(120deg, #d12c2c, #0f9b68);
+      background: linear-gradient(120deg, #ff7f6a, #18c29c);
       color: #fffaf2;
       padding: 6px;
     }
     .ranking-table td {
-      border: 1px solid rgba(15, 81, 50, 0.25);
+      border: 1px solid rgba(18, 196, 160, 0.25);
       padding: 6px;
       text-align: center;
     }
     .auto-renew-note {
       font-size: 14px;
       margin-bottom: 5px;
-      color: #2f6f3a;
+      color: #0f7a67;
     }
     .match-days {
       display: flex;
@@ -445,7 +450,7 @@
     .date-header {
       font-weight: 600;
       margin-bottom: 6px;
-      color: #0f766e;
+      color: #0c7c6f;
     }
     .match-result {
       width: 100%;
@@ -478,7 +483,7 @@
       align-items: center;
       font-size: 20px;
       font-weight: bold;
-      color: #c1121f;
+      color: #ff6b6b;
       white-space: nowrap;
     }
     .set-table {
@@ -532,18 +537,18 @@
     .bracket .set-count {
       font-size: 20px;
       font-weight: bold;
-      color: #c1121f;
+      color: #ff6b6b;
       margin: 4px 0;
     }
     .bracket .line {
       width: 2px;
       height: 30px;
-      background: rgba(15, 81, 50, 0.6);
+      background: rgba(18, 196, 160, 0.6);
     }
     .bracket .champion {
       font-weight: bold;
       font-size: 22px;
-      color: #0f766e;
+      color: #0c7c6f;
     }
 
     .bracket.horizontal {
@@ -559,7 +564,7 @@
     .bracket.horizontal .line {
       width: 40px;
       height: 2px;
-      background: rgba(15, 81, 50, 0.6);
+      background: rgba(18, 196, 160, 0.6);
     }
 
     .bracket-gallery {
@@ -574,7 +579,7 @@
       max-width: 1200px;
       height: auto;
       border-radius: 16px;
-      box-shadow: 0 12px 24px rgba(12, 83, 40, 0.28);
+      box-shadow: 0 12px 24px rgba(12, 83, 40, 0.2), 0 8px 20px rgba(255, 159, 112, 0.18);
     }
 
     @media (max-width: 600px) {
@@ -628,23 +633,23 @@
     .tournament-page-inner {
       width: 100%;
       max-width: 980px;
-      background: rgba(255, 255, 255, 0.8);
+      background: linear-gradient(160deg, rgba(255, 249, 237, 0.95), rgba(184, 243, 255, 0.82));
       border-radius: 20px;
       padding: 18px 18px 22px;
       border: 1px solid rgba(255, 209, 102, 0.65);
-      box-shadow: 0 18px 38px rgba(12, 83, 40, 0.28);
+      box-shadow: 0 18px 38px rgba(12, 83, 40, 0.22), 0 12px 26px rgba(255, 159, 112, 0.22);
       backdrop-filter: blur(4px);
     }
     .tournament-title {
       margin: 0 0 8px 0;
       font-size: 2rem;
       color: var(--cherry);
-      text-shadow: 0 4px 14px rgba(193, 18, 31, 0.32);
+      text-shadow: 0 4px 14px rgba(255, 159, 112, 0.4);
     }
     .tournament-subtitle {
       margin: 0 0 18px 0;
       opacity: 0.9;
-      color: #0f766e;
+      color: #0c7c6f;
     }
     .tournament-list {
       display: grid;
@@ -654,18 +659,18 @@
     .tournament-card {
       border-radius: 16px;
       padding: 16px 16px 14px;
-      background: linear-gradient(150deg, rgba(255, 247, 237, 0.96), rgba(125, 211, 252, 0.22));
+      background: linear-gradient(150deg, rgba(255, 249, 237, 0.98), rgba(184, 243, 255, 0.35));
       border: 1px solid transparent;
-      border-image: linear-gradient(60deg, rgba(193, 18, 31, 0.6), rgba(15, 155, 104, 0.65)) 1;
-      box-shadow: 0 12px 26px rgba(12, 83, 40, 0.22);
+      border-image: linear-gradient(60deg, rgba(255, 159, 112, 0.7), rgba(18, 196, 160, 0.7)) 1;
+      box-shadow: 0 12px 26px rgba(12, 83, 40, 0.18), 0 8px 18px rgba(255, 159, 112, 0.18);
       cursor: pointer;
       transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
       color: var(--pine);
     }
     .tournament-card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 16px 32px rgba(193, 18, 31, 0.22);
-      border-color: rgba(255, 209, 102, 0.8);
+      box-shadow: 0 16px 32px rgba(255, 159, 112, 0.24), 0 10px 20px rgba(12, 83, 40, 0.16);
+      border-color: rgba(18, 196, 160, 0.8);
     }
     .tournament-card-name {
       font-weight: 700;
@@ -676,7 +681,7 @@
     }
     .tournament-card-subtitle {
       margin: 0;
-      color: #0f766e;
+      color: #0c7c6f;
       opacity: 0.95;
       line-height: 1.4;
       font-size: 0.98rem;
