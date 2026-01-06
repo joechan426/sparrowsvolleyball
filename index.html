@@ -791,7 +791,7 @@
 
     let currentTournament = "";
     const tournamentMetaCache = {};
-    const SCHEDULE_CACHE_TTL_MS = 60 * 1000;
+    const SCHEDULE_CACHE_TTL_MS = 30 * 1000;
 
     function getScheduleCacheKey(tournament) {
       return `sparrows:schedule:${tournament || ""}`;
@@ -858,7 +858,7 @@
     }
 
     const TOURNAMENT_LIST_CACHE_KEY = "sparrows:tournaments:list";
-    const TOURNAMENT_LIST_CACHE_TTL = 60 * 1000;
+    const TOURNAMENT_LIST_CACHE_TTL = 30 * 1000;
 
     function readTournamentListCache() {
       if (typeof localStorage === "undefined") return null;
