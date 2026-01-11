@@ -1,30 +1,18 @@
-# Sparrows Volleyball Schedule
+# Sparrows Volleyball SwiftUI App
 
-This repository contains a simple static web site used to publish and manage the Sparrows volleyball schedule. Match information lives in the `content/matches` folder and can be edited through Netlify CMS.
+This repository contains the starter SwiftUI architecture for the Sparrows
+Volleyball app. The project is organized around Swift Package Manager so it can
+be opened directly in Xcode.
 
-## Running the site locally
+## Getting started
 
-Any static file server can host the site. From the repository root run:
+1. Open `Package.swift` in Xcode.
+2. Select the `SparrowsVolleyballApp` scheme.
+3. Run the app on the iOS Simulator or macOS.
 
-```bash
-python3 -m http.server
-```
+## Project structure
 
-Then open `http://localhost:8000` in your browser to view `index.html`.
-
-## Adding match data via Netlify CMS
-
-1. With the local server running (or after deployment), navigate to `/src/admin/`.
-2. Log in using your Netlify Identity or GitHub credentials.
-3. Under **Volleyball Matches**, click **New** to create a match entry.
-4. Fill in the date, teams, time, court and duty team fields and save.
-
-The CMS commits the new file under `content/matches/` so the schedule can be updated automatically.
-
-## Live Results
-
-Live standings and score submissions are also driven by the same Google Sheets
-document used for the schedule. The site calls a Google Apps Script (`apiUrl` in
-`index.html`) to fetch the latest results and to record score updates. This
-means no manual updates to `content/results.json` are required.
-
+- `Sources/App` contains the entry point and root navigation.
+- `Sources/Features` holds feature-specific views and view models.
+- `Sources/Models` contains domain models shared across the app.
+- `Sources/DesignSystem` centralizes reusable styling helpers.
