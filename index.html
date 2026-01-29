@@ -33,6 +33,23 @@
       color: var(--pine);
       min-height: 100vh;
     }
+    body.lunar-cup-theme {
+      --sky: #ffe6d6;
+      --sea: #f04f4f;
+      --sand: #ffe3a1;
+      --pine: #6b1f1f;
+      --cherry: #d72638;
+      --gold: #ffcc4d;
+      --shell: #fff4e8;
+      --sunset: #f1783d;
+      --lagoon: #c72c2c;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 200, 140, 0.5) 0, rgba(255, 200, 140, 0) 40%),
+        radial-gradient(circle at 80% 18%, rgba(255, 120, 120, 0.42) 0, rgba(255, 120, 120, 0) 38%),
+        radial-gradient(circle at 50% 92%, rgba(255, 210, 120, 0.32) 0, rgba(255, 210, 120, 0) 48%),
+        linear-gradient(180deg, rgba(255, 233, 214, 0.98) 0%, rgba(255, 160, 140, 0.9) 52%, rgba(255, 227, 168, 0.94) 100%),
+        repeating-linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0, rgba(255, 255, 255, 0.12) 8px, rgba(0, 0, 0, 0) 8px, rgba(0, 0, 0, 0) 16px);
+    }
     h1 {
       font-size: 30px;
       margin-bottom: 6px;
@@ -793,6 +810,14 @@
     const tournamentMetaCache = {};
     const SCHEDULE_CACHE_TTL_MS = 30 * 1000;
 
+    function isLunarCupTournament(name) {
+      return typeof name === "string" && /lunar cup/i.test(name.trim());
+    }
+
+    function setLunarCupTheme(isActive) {
+      document.body.classList.toggle("lunar-cup-theme", Boolean(isActive));
+    }
+
     function getScheduleCacheKey(tournament) {
       return `sparrows:schedule:${tournament || ""}`;
     }
@@ -898,6 +923,7 @@
     function showTournamentPage() {
       document.getElementById("tournamentPage").style.display = "flex";
       document.getElementById("appPage").style.display = "none";
+      setLunarCupTheme(false);
     }
 
     function showAppPage() {
@@ -1001,6 +1027,7 @@
     async function enterTournament(name, { showLoader = true } = {}) {
       currentTournament = name;
       updateTournamentInUrl(name);
+      setLunarCupTheme(isLunarCupTournament(name));
 
       // Reset filters / in-memory state (safe even if already empty)
       scheduleData = {};
