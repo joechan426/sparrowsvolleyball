@@ -1985,6 +1985,9 @@
           <input type="tel" inputmode="numeric" pattern="[0-9]*" id="b${i+1}" />
         </div>`).join("");
 
+      const commentHint = /cup/i.test(currentTournament)
+        ? "(If you have any feedback, please feel free to leave it in this section)"
+        : "(Choose your MVP of the game here.)";
       popup.innerHTML = `
         <div class="popup-content">
           <h3>Enter Scores</h3>
@@ -1992,7 +1995,7 @@
           ${inputFields}
           <div>
             <label>Comment:</label>
-            <div>(Choose your MVP of the game here.)</div>
+            <div>${commentHint}</div>
             <textarea id="comment" maxlength="255"></textarea>
             <small>Max 255 characters</small>
           </div>
