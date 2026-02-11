@@ -408,6 +408,67 @@
       background: linear-gradient(120deg, #fff0b3, #ffad7e);
       box-shadow: 0 14px 26px rgba(255, 159, 112, 0.32);
     }
+    .draw-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: auto;
+      max-width: 100%;
+      padding: 14px 18px;
+      font-size: 17px;
+      background: linear-gradient(120deg, #0d6f56, #0b5b53);
+      color: #f4fff8;
+      border-bottom: none;
+      box-shadow: 0 12px 24px rgba(11, 91, 83, 0.28);
+      letter-spacing: 0.3px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .draw-link-btn:hover {
+      background: linear-gradient(120deg, #158567, #0d6f56);
+      box-shadow: 0 14px 26px rgba(11, 91, 83, 0.36);
+    }
+    .live-actions {
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: flex-start;
+    }
+    .court-map-btn {
+      padding: 8px 14px;
+      font-size: 14px;
+      background: linear-gradient(120deg, #0c4f8f, #08386a);
+      color: #eff7ff;
+      box-shadow: 0 8px 16px rgba(8, 56, 106, 0.26);
+    }
+    .court-map-btn:hover {
+      background: linear-gradient(120deg, #1364b3, #0c4f8f);
+      box-shadow: 0 10px 18px rgba(8, 56, 106, 0.33);
+    }
+    .image-popup-content {
+      max-width: min(1000px, 96vw);
+      width: auto;
+      padding: 14px;
+    }
+    .zoomable-map-wrap {
+      max-height: 76vh;
+      overflow: auto;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(12, 79, 143, 0.25);
+    }
+    .zoomable-map {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: zoom-in;
+      transform-origin: top left;
+      transition: transform 0.2s ease;
+    }
+    .zoomable-map.zoomed {
+      transform: scale(1.8);
+      cursor: zoom-out;
+    }
     .all-tournaments-btn .all-tournaments-line {
       display: inline;
       white-space: nowrap;
@@ -620,12 +681,26 @@
         white-space: normal;
         line-height: 1.3;
       }
+      .draw-link-btn {
+        width: 100%;
+        flex-direction: column;
+        font-size: 15px;
+        white-space: normal;
+        line-height: 1.3;
+      }
       .all-tournaments-btn .all-tournaments-line {
         display: block;
       }
     }
     @media (max-width: 1024px) and (min-width: 601px) {
       .all-tournaments-btn {
+        width: 100%;
+        flex-direction: column;
+        font-size: 16px;
+        white-space: normal;
+        line-height: 1.3;
+      }
+      .draw-link-btn {
         width: 100%;
         flex-direction: column;
         font-size: 16px;
@@ -759,6 +834,9 @@
         <span class="all-tournaments-line">all Sparrows ongoing tournament</span>
       </button>
     </div>
+    <div class="tab-primary">
+      <button id="drawLinkBtn" class="draw-link-btn" style="display:none;">Click here to view the Draw</button>
+    </div>
     <div class="tab-secondary">
       <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
       <button id='liveTab' onclick="showTab('live')">Live results</button>
@@ -777,6 +855,9 @@
     <div id="results"></div>
   </div>
   <div id="liveResultsSection" style="display:none;">
+    <div class="live-actions">
+      <button id="courtMapBtn" class="court-map-btn" style="display:none;">View Court Map</button>
+    </div>
     <div id="divisionTabs" class="division-tabs">
       <div id="divisionRowRegular" class="division-row"></div>
       <div id="divisionRowFinals" class="division-row finals-row"></div>
@@ -884,6 +965,20 @@
 
     const TOURNAMENT_LIST_CACHE_KEY = "sparrows:tournaments:list";
     const TOURNAMENT_LIST_CACHE_TTL = 30 * 1000;
+    const VALENTINES_CUP_NAME = "SPARROWS PRESEASON [VALENTINES] CUP #1 2026";
+    const VALENTINES_DRAW_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnrD6ea7L78py8i-VcFc05kaeIJPyQvy2p3TrF07m6ntlmC1Ck01yv_7YTWMY0b7I_MHu3fpGWRQWx/pubhtml";
+
+    function isValentinesCupTournament(name) {
+      return typeof name === "string" && name.trim().toLowerCase() === VALENTINES_CUP_NAME.toLowerCase();
+    }
+
+    function updateSpecialTournamentButtons(tournamentName) {
+      const isValentinesCup = isValentinesCupTournament(tournamentName);
+      const drawBtn = document.getElementById("drawLinkBtn");
+      const courtMapBtn = document.getElementById("courtMapBtn");
+      if (drawBtn) drawBtn.style.display = isValentinesCup ? "inline-flex" : "none";
+      if (courtMapBtn) courtMapBtn.style.display = isValentinesCup ? "inline-flex" : "none";
+    }
 
     function readTournamentListCache() {
       if (typeof localStorage === "undefined") return null;
@@ -924,6 +1019,7 @@
       document.getElementById("tournamentPage").style.display = "flex";
       document.getElementById("appPage").style.display = "none";
       setLunarCupTheme(false);
+      updateSpecialTournamentButtons(null);
     }
 
     function showAppPage() {
@@ -1028,6 +1124,7 @@
       currentTournament = name;
       updateTournamentInUrl(name);
       setLunarCupTheme(isLunarCupTournament(name));
+      updateSpecialTournamentButtons(name);
 
       // Reset filters / in-memory state (safe even if already empty)
       scheduleData = {};
@@ -1069,6 +1166,63 @@
         showTournamentPage();
         await loadTournamentList();
       });
+    }
+
+    function openCourtMapPopup() {
+      const overlay = document.createElement("div");
+      overlay.className = "overlay";
+
+      const popup = document.createElement("div");
+      popup.className = "popup";
+
+      const content = document.createElement("div");
+      content.className = "popup-content image-popup-content";
+
+      const mapWrap = document.createElement("div");
+      mapWrap.className = "zoomable-map-wrap";
+
+      const mapImage = document.createElement("img");
+      mapImage.className = "zoomable-map";
+      mapImage.src = "content/img/sporthall_map.png";
+      mapImage.alt = "Sporthall court map";
+      mapImage.addEventListener("click", () => {
+        mapImage.classList.toggle("zoomed");
+      });
+
+      const actions = document.createElement("div");
+      actions.className = "popup-buttons";
+
+      const closeBtn = document.createElement("button");
+      closeBtn.textContent = "Close";
+
+      const closePopup = () => {
+        overlay.remove();
+        popup.remove();
+      };
+
+      closeBtn.addEventListener("click", closePopup);
+      overlay.addEventListener("click", closePopup);
+
+      mapWrap.appendChild(mapImage);
+      actions.appendChild(closeBtn);
+      content.appendChild(mapWrap);
+      content.appendChild(actions);
+      popup.appendChild(content);
+      document.body.appendChild(overlay);
+      document.body.appendChild(popup);
+    }
+
+    function bindSpecialTournamentButtons() {
+      const drawBtn = document.getElementById("drawLinkBtn");
+      const courtMapBtn = document.getElementById("courtMapBtn");
+      if (drawBtn) {
+        drawBtn.addEventListener("click", () => {
+          window.open(VALENTINES_DRAW_URL, "_blank", "noopener,noreferrer");
+        });
+      }
+      if (courtMapBtn) {
+        courtMapBtn.addEventListener("click", openCourtMapPopup);
+      }
     }
     if (!bracketsEnabled) {
       const bracketsTab = document.getElementById("bracketsTab");
@@ -2336,6 +2490,7 @@
     document.getElementById("combineViewBtn").addEventListener("click", openCombineDivisionsPopup);
     window.addEventListener("DOMContentLoaded", async () => {
       bindBackButton();
+      bindSpecialTournamentButtons();
       const urlParams = new URLSearchParams(window.location.search);
       const initialTournament = urlParams.get("tournament");
 
