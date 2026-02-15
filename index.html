@@ -1135,8 +1135,8 @@
       liveResults = {};
       currentDivision = null;
       combinedDivisions = null;
-      liveResultsLoadedFor = null;
       liveResultsLoadingPromise = null;
+      stopLiveResultsAutoRefresh();
       clearLiveResultsUI();
 
       if (showLoader) showLoading("Data retrieving");
@@ -1247,8 +1247,11 @@
       document.getElementById("bracketsTab").classList.toggle("active", tab === "brackets");
       if (tab === "live") {
         ensureLiveResultsLoaded();
+        startLiveResultsAutoRefresh();
+      } else {
+        stopLiveResultsAutoRefresh();
+        highlightTeam(null);
       }
-      if (tab !== "live") highlightTeam(null);
     }
 
 
@@ -1545,8 +1548,9 @@
     let liveResults = {};
     let currentDivision = null;
     let combinedDivisions = null;
-    let liveResultsLoadedFor = null;
     let liveResultsLoadingPromise = null;
+    let liveResultsRefreshTimer = null;
+    const LIVE_RESULTS_REFRESH_MS = 15 * 1000;
 
     function showLiveResultsLoading(message = "Loading live results...") {
       const container = document.getElementById('divisionContent');
@@ -1561,16 +1565,11 @@
     }
 
     function ensureLiveResultsLoaded() {
-      if (liveResultsLoadedFor === currentTournament || liveResultsLoadingPromise) return;
+      if (liveResultsLoadingPromise) return;
       clearLiveResultsUI();
       showLiveResultsLoading();
       const requestedTournament = currentTournament;
       liveResultsLoadingPromise = fetchResults(requestedTournament)
-        .then(success => {
-          if (success && requestedTournament === currentTournament) {
-            liveResultsLoadedFor = requestedTournament;
-          }
-        })
         .catch(err => {
           console.error("Failed to load live results", err);
           const container = document.getElementById('divisionContent');
@@ -1579,6 +1578,25 @@
           }
         })
         .finally(() => { liveResultsLoadingPromise = null; });
+    }
+
+    function stopLiveResultsAutoRefresh() {
+      if (liveResultsRefreshTimer) {
+        clearInterval(liveResultsRefreshTimer);
+        liveResultsRefreshTimer = null;
+      }
+    }
+
+    function startLiveResultsAutoRefresh() {
+      stopLiveResultsAutoRefresh();
+      if (!currentTournament) return;
+      liveResultsRefreshTimer = setInterval(() => {
+        if (document.getElementById("liveResultsSection").style.display !== "block") return;
+        if (liveResultsLoadingPromise) return;
+        fetchResults(currentTournament).catch(err => {
+          console.error("Failed to auto refresh live results", err);
+        });
+      }, LIVE_RESULTS_REFRESH_MS);
     }
 
     async function fetchResults(tournamentName = currentTournament) {
@@ -1714,7 +1732,7 @@
       if (!data) { container.innerHTML = ''; return; }
 
       if (/finals/i.test(div)) {
-        let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
+        let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
           buildFinalsBracket(div);
         container.innerHTML = html;
         document.querySelectorAll('#divisionTabs button').forEach(btn => btn.classList.remove('active'));
@@ -1727,7 +1745,7 @@
         return;
       }
 
-      let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
+      let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
@@ -1876,7 +1894,7 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
-      let html = '<div class="auto-renew-note">Table auto refresh every 30 sec</div>' +
+      let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
