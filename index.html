@@ -839,7 +839,7 @@
     </div>
     <div class="tab-secondary">
       <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
-      <button id='liveTab' onclick="showTab('live')">Live results</button>
+      <button id='liveTab' onclick="handleLiveTabClick()">Live results</button>
       <button id='bracketsTab' onclick="showTab('brackets')">Tournament Brackets</button>
     </div>
   </div>
@@ -890,6 +890,7 @@
     let currentTournament = "";
     const tournamentMetaCache = {};
     const SCHEDULE_CACHE_TTL_MS = 30 * 1000;
+    const LIVE_RESULTS_CACHE_TTL_MS = 15 * 1000;
 
     function isLunarCupTournament(name) {
       return typeof name === "string" && /lunar cup/i.test(name.trim());
@@ -935,6 +936,45 @@
         localStorage.removeItem(getScheduleCacheKey(tournament));
       } catch (err) {
         console.warn("Failed to clear schedule cache", err);
+      }
+    }
+
+    function getLiveResultsCacheKey(tournament) {
+      return `sparrows:live-results:${tournament || ""}`;
+    }
+
+    function readLiveResultsCache(tournament) {
+      if (!tournament || typeof localStorage === "undefined") return null;
+      try {
+        const raw = localStorage.getItem(getLiveResultsCacheKey(tournament));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+        return { data: parsed.data, timestamp: parsed.timestamp || 0 };
+      } catch (err) {
+        console.warn("Failed to read live results cache", err);
+        return null;
+      }
+    }
+
+    function writeLiveResultsCache(tournament, data) {
+      if (!tournament || typeof localStorage === "undefined") return;
+      try {
+        localStorage.setItem(
+          getLiveResultsCacheKey(tournament),
+          JSON.stringify({ data, timestamp: Date.now() })
+        );
+      } catch (err) {
+        console.warn("Failed to write live results cache", err);
+      }
+    }
+
+    function clearLiveResultsCache(tournament) {
+      if (!tournament || typeof localStorage === "undefined") return;
+      try {
+        localStorage.removeItem(getLiveResultsCacheKey(tournament));
+      } catch (err) {
+        console.warn("Failed to clear live results cache", err);
       }
     }
 
@@ -1254,6 +1294,19 @@
       }
     }
 
+    function handleLiveTabClick() {
+      const liveSectionVisible = document.getElementById("liveResultsSection").style.display === "block";
+      if (liveSectionVisible && currentTournament && !liveResultsLoadingPromise) {
+        clearLiveResultsCache(currentTournament);
+        liveResultsLoadingPromise = fetchResults(currentTournament, { allowCache: false, forceRefresh: true })
+          .catch(err => {
+            console.error("Failed to force refresh live results", err);
+          })
+          .finally(() => { liveResultsLoadingPromise = null; });
+      }
+      showTab("live");
+    }
+
 
     function showLoading(message = "Loading...") {
       let overlay = document.querySelector(".loading-overlay");
@@ -1566,18 +1619,26 @@
 
     function ensureLiveResultsLoaded() {
       if (liveResultsLoadingPromise) return;
-      clearLiveResultsUI();
-      showLiveResultsLoading();
       const requestedTournament = currentTournament;
-      liveResultsLoadingPromise = fetchResults(requestedTournament)
+      if (!requestedTournament) return;
+      const cached = readLiveResultsCache(requestedTournament);
+      const hasCachedData = cached && cached.data;
+
+      if (!hasCachedData && (!liveResults || !Object.keys(liveResults).length)) {
+        clearLiveResultsUI();
+        showLiveResultsLoading();
+      }
+
+      liveResultsLoadingPromise = fetchResults(requestedTournament, { allowCache: true, forceRefresh: false })
         .catch(err => {
           console.error("Failed to load live results", err);
           const container = document.getElementById('divisionContent');
           if (container) {
-            container.innerHTML = '<div class=\"tournament-error\">Failed to load live results. Please try again.</div>';
+            container.innerHTML = '<div class="tournament-error">Failed to load live results. Please try again.</div>';
           }
         })
         .finally(() => { liveResultsLoadingPromise = null; });
+
     }
 
     function stopLiveResultsAutoRefresh() {
@@ -1593,17 +1654,15 @@
       liveResultsRefreshTimer = setInterval(() => {
         if (document.getElementById("liveResultsSection").style.display !== "block") return;
         if (liveResultsLoadingPromise) return;
-        fetchResults(currentTournament).catch(err => {
+        fetchResults(currentTournament, { allowCache: false, forceRefresh: true }).catch(err => {
           console.error("Failed to auto refresh live results", err);
         });
       }, LIVE_RESULTS_REFRESH_MS);
     }
 
-    async function fetchResults(tournamentName = currentTournament) {
-      const res = await fetch(`${apiUrl}?action=getResults&tournament=${encodeURIComponent(tournamentName)}`, { cache: 'no-store' });
-      const parsed = await res.json();
+    function applyLiveResultsPayload(payload, tournamentName) {
       if (tournamentName !== currentTournament) return false;
-      liveResults = parsed;
+      liveResults = payload;
       if (!liveResults.schedule) {
         liveResults = { schedule: liveResults };
       }
@@ -1638,6 +1697,25 @@
         showDivision(currentDivision);
       }
       return true;
+    }
+
+    async function fetchResults(tournamentName = currentTournament, { allowCache = true, forceRefresh = false } = {}) {
+      const requestedTournament = tournamentName || "";
+      if (!requestedTournament) return false;
+
+      if (allowCache && !forceRefresh) {
+        const cached = readLiveResultsCache(requestedTournament);
+        const hasCachedData = cached && cached.data;
+        const isCacheFresh = hasCachedData && (Date.now() - cached.timestamp < LIVE_RESULTS_CACHE_TTL_MS);
+        if (isCacheFresh) {
+          return applyLiveResultsPayload(cached.data, requestedTournament);
+        }
+      }
+
+      const res = await fetch(`${apiUrl}?action=getResults&tournament=${encodeURIComponent(requestedTournament)}`, { cache: 'no-store' });
+      const parsed = await res.json();
+      writeLiveResultsCache(requestedTournament, parsed);
+      return applyLiveResultsPayload(parsed, requestedTournament);
     }
 
     function buildFinalsBracket(div) {
