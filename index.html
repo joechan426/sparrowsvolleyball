@@ -392,7 +392,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      width: auto;
+      width: min(100%, 460px);
       max-width: 100%;
       padding: 14px 18px;
       font-size: 17px;
@@ -413,7 +413,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      width: auto;
+      width: min(100%, 460px);
       max-width: 100%;
       padding: 14px 18px;
       font-size: 17px;
@@ -1005,19 +1005,31 @@
 
     const TOURNAMENT_LIST_CACHE_KEY = "sparrows:tournaments:list";
     const TOURNAMENT_LIST_CACHE_TTL = 30 * 1000;
-    const VALENTINES_CUP_NAME = "SPARROWS PRESEASON [VALENTINES] CUP #1 2026";
-    const VALENTINES_DRAW_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnrD6ea7L78py8i-VcFc05kaeIJPyQvy2p3TrF07m6ntlmC1Ck01yv_7YTWMY0b7I_MHu3fpGWRQWx/pubhtml";
+    const SPECIAL_TOURNAMENTS = {
+      "SPARROWS PRESEASON [VALENTINES] CUP #1 2026": {
+        drawUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRnrD6ea7L78py8i-VcFc05kaeIJPyQvy2p3TrF07m6ntlmC1Ck01yv_7YTWMY0b7I_MHu3fpGWRQWx/pubhtml",
+        showCourtMap: true
+      },
+      "SPARROWS PRESEASON CUP #2 2026": {
+        drawUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRpUYobgGrECiv2e4bWvMTbCch85ItUBHvytG8HvOaM7KeI8wodLMGc_B8ltp3S8RhC6XkLuXkFWYxG/pubhtml",
+        showCourtMap: true
+      }
+    };
 
-    function isValentinesCupTournament(name) {
-      return typeof name === "string" && name.trim().toLowerCase() === VALENTINES_CUP_NAME.toLowerCase();
+    function getSpecialTournamentConfig(name) {
+      if (typeof name !== "string") return null;
+      const normalizedName = name.trim().toLowerCase();
+      return Object.entries(SPECIAL_TOURNAMENTS).find(([tournamentName]) => {
+        return tournamentName.toLowerCase() === normalizedName;
+      })?.[1] || null;
     }
 
     function updateSpecialTournamentButtons(tournamentName) {
-      const isValentinesCup = isValentinesCupTournament(tournamentName);
+      const config = getSpecialTournamentConfig(tournamentName);
       const drawBtn = document.getElementById("drawLinkBtn");
       const courtMapBtn = document.getElementById("courtMapBtn");
-      if (drawBtn) drawBtn.style.display = isValentinesCup ? "inline-flex" : "none";
-      if (courtMapBtn) courtMapBtn.style.display = isValentinesCup ? "inline-flex" : "none";
+      if (drawBtn) drawBtn.style.display = config?.drawUrl ? "inline-flex" : "none";
+      if (courtMapBtn) courtMapBtn.style.display = config?.showCourtMap ? "inline-flex" : "none";
     }
 
     function readTournamentListCache() {
@@ -1257,7 +1269,9 @@
       const courtMapBtn = document.getElementById("courtMapBtn");
       if (drawBtn) {
         drawBtn.addEventListener("click", () => {
-          window.open(VALENTINES_DRAW_URL, "_blank", "noopener,noreferrer");
+          const config = getSpecialTournamentConfig(currentTournament);
+          if (!config?.drawUrl) return;
+          window.open(config.drawUrl, "_blank", "noopener,noreferrer");
         });
       }
       if (courtMapBtn) {
