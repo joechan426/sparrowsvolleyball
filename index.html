@@ -546,6 +546,13 @@
     }
     .match-day.finals-day .date-header {
       color: #8a5a00;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      font-size: 1.35em;
+      font-weight: 800;
+      text-align: center;
     }
     .date-header {
       font-weight: 600;
@@ -583,6 +590,12 @@
       border-radius: 10px;
       padding: 2px 8px;
       box-shadow: 0 3px 10px rgba(138, 90, 0, 0.2);
+    }
+    .match-header .team-color.finals-loser {
+      background: #ececec;
+      color: #666 !important;
+      border-radius: 10px;
+      padding: 2px 8px;
     }
     .finals-medal {
       margin-left: 4px;
@@ -2127,8 +2140,10 @@
           const isFinalsMatch = isFinalsDate;
           const teamAIsWinner = isFinalsMatch && swA > swB;
           const teamBIsWinner = isFinalsMatch && swB > swA;
-          const teamAClasses = `team-color team-entry${teamAIsWinner ? ' finals-winner' : ''}`;
-          const teamBClasses = `team-color team-entry${teamBIsWinner ? ' finals-winner' : ''}`;
+          const teamAIsLoser = isFinalsMatch && swA < swB;
+          const teamBIsLoser = isFinalsMatch && swB < swA;
+          const teamAClasses = `team-color team-entry${teamAIsWinner ? ' finals-winner' : ''}${teamAIsLoser ? ' finals-loser' : ''}`;
+          const teamBClasses = `team-color team-entry${teamBIsWinner ? ' finals-winner' : ''}${teamBIsLoser ? ' finals-loser' : ''}`;
           const teamALabel = `${match.team}${teamAIsWinner ? '<span class="finals-medal" aria-label="winner medal">🏅</span>' : ''}`;
           const teamBLabel = `${match.opponent}${teamBIsWinner ? '<span class="finals-medal" aria-label="winner medal">🏅</span>' : ''}`;
           const setLabels = ['1st Set', '2nd Set', '3rd Set', '4th Set', '5th Set'];
