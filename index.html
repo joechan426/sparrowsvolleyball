@@ -515,6 +515,20 @@
       margin-bottom: 5px;
       color: #0f7a67;
     }
+    .finals-toggle-wrap {
+      margin-bottom: 10px;
+    }
+    .finals-toggle-btn {
+      font-size: 14px;
+      padding: 8px 14px;
+      background: linear-gradient(120deg, #0c4f8f, #08386a);
+      color: #eff7ff;
+      box-shadow: 0 8px 16px rgba(8, 56, 106, 0.26);
+    }
+    .finals-toggle-btn:hover {
+      background: linear-gradient(120deg, #1364b3, #0c4f8f);
+      box-shadow: 0 10px 18px rgba(8, 56, 106, 0.33);
+    }
     .match-days {
       display: flex;
       flex-wrap: wrap;
@@ -1187,6 +1201,7 @@
       liveResults = {};
       currentDivision = null;
       combinedDivisions = null;
+      hideNonFinalsMatches = false;
       liveResultsLoadingPromise = null;
       stopLiveResultsAutoRefresh();
       clearLiveResultsUI();
@@ -1418,9 +1433,14 @@
       return (name || "").trim().toLowerCase();
     }
 
-    function computeStandings(schedule) {
+    function isFinalsDateLabel(dateLabel) {
+      return /finals/i.test(String(dateLabel || ''));
+    }
+
+    function computeStandings(schedule, { excludeFinalsDates = false } = {}) {
       const divStats = {};
       for (const date in schedule || {}) {
+        if (excludeFinalsDates && isFinalsDateLabel(date)) continue;
         (schedule[date] || []).forEach(match => {
           const { division, team, opponent, scores = {} } = match || {};
           const a = scores.a || [];
@@ -1615,6 +1635,7 @@
     let liveResults = {};
     let currentDivision = null;
     let combinedDivisions = null;
+    let hideNonFinalsMatches = false;
     let liveResultsLoadingPromise = null;
     let liveResultsRefreshTimer = null;
     const LIVE_RESULTS_REFRESH_MS = 15 * 1000;
@@ -1837,13 +1858,15 @@
         return;
       }
 
+      const standingsForDivision = ((computeStandings(liveResults.schedule || {}, { excludeFinalsDates: true }) || {})[div] || {}).standings || [];
+
       let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
         '<th>SW</th><th>SL</th><th>Set%</th>' +
         '<th>PW</th><th>PL</th><th>Pts%</th>' +
         '</tr></thead><tbody>';
-      data.standings.forEach((row, i) => {
+      standingsForDivision.forEach((row, i) => {
         const nameKey = normalizeName(row.team);
         const displayName = teamNameMap[nameKey] || row.team;
         const setPct = row.setsWon + row.setsLost > 0 ?
@@ -1858,10 +1881,20 @@
       });
       html += '</tbody></table>';
       html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
-      
-      html += '<div class="match-days">';
       const schedule = liveResults.schedule || {};
+      const hasFinalsDate = Object.keys(schedule).some(date => {
+        const matches = (schedule[date] || []).filter(m => m.division === div);
+        return matches.length && isFinalsDateLabel(date);
+      });
+      if (!hasFinalsDate) hideNonFinalsMatches = false;
+      if (hasFinalsDate) {
+        const toggleText = hideNonFinalsMatches ? 'Show non-Finals matches' : 'Hide non-Finals matches';
+        html += `<div class="finals-toggle-wrap"><button id="finalsToggleBtn" class="finals-toggle-btn">${toggleText}</button></div>`;
+      }
+
+      html += '<div class="match-days">';
       for (const date in schedule) {
+        if (hideNonFinalsMatches && !isFinalsDateLabel(date)) continue;
         const matches = (schedule[date] || []).filter(m => m.division === div);
         if (!matches.length) continue;
         html += `<div class="card match-day"><div class="date-header">${date}</div>`;
@@ -1920,6 +1953,13 @@
       document.querySelectorAll('#divisionContent .team-entry').forEach(el => {
         el.addEventListener('click', () => highlightTeam(el.dataset.team));
       });
+      const finalsToggleBtn = document.getElementById('finalsToggleBtn');
+      if (finalsToggleBtn) {
+        finalsToggleBtn.addEventListener('click', () => {
+          hideNonFinalsMatches = !hideNonFinalsMatches;
+          showDivision(div);
+        });
+      }
       if (highlightedTeamKey) highlightTeam(highlightedTeamKey);
     }
 
@@ -1981,7 +2021,7 @@
           schedule[date] = matches.map(m => ({ ...m, origDivision: m.division, division: 'Combined' }));
         }
       }
-      const standingsObj = computeStandings(schedule);
+      const standingsObj = computeStandings(schedule, { excludeFinalsDates: true });
       const data = standingsObj['Combined'];
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
@@ -2007,9 +2047,16 @@
       });
       html += '</tbody></table>';
       html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
+      const hasFinalsDate = Object.keys(schedule).some(date => isFinalsDateLabel(date));
+      if (!hasFinalsDate) hideNonFinalsMatches = false;
+      if (hasFinalsDate) {
+        const toggleText = hideNonFinalsMatches ? 'Show non-Finals matches' : 'Hide non-Finals matches';
+        html += `<div class="finals-toggle-wrap"><button id="finalsToggleBtn" class="finals-toggle-btn">${toggleText}</button></div>`;
+      }
 
       html += '<div class="match-days">';
       for (const date in schedule) {
+        if (hideNonFinalsMatches && !isFinalsDateLabel(date)) continue;
         const matches = schedule[date];
         html += `<div class="card match-day"><div class="date-header">${date}</div>`;
         matches.forEach(match => {
@@ -2063,6 +2110,13 @@
       document.querySelectorAll('#divisionContent .team-entry').forEach(el => {
         el.addEventListener('click', () => highlightTeam(el.dataset.team));
       });
+      const finalsToggleBtn = document.getElementById('finalsToggleBtn');
+      if (finalsToggleBtn) {
+        finalsToggleBtn.addEventListener('click', () => {
+          hideNonFinalsMatches = !hideNonFinalsMatches;
+          showCombinedDivisions(divList);
+        });
+      }
     }
 
     function populateFilters() {
