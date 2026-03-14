@@ -251,7 +251,8 @@
       padding: 10px 16px;
     }
     .label-column {
-      width: 80px;
+      width: 150px;
+      font-size: 13px;
     }
     .score-column {
       display: flex;
@@ -970,6 +971,50 @@
       return typeof name === "string" && /pickleball/i.test(name);
     }
 
+    function usePickleballRules() {
+      return isPickleballTournament(currentTournament);
+    }
+
+    function getSetLabels() {
+      if (usePickleballRules()) {
+        return ["Singles A Match", "Singles B Match", "Doubles 1st Game", "Doubles 2nd Game"];
+      }
+      return ["1st Set", "2nd Set", "3rd Set", "4th Set", "5th Set"];
+    }
+
+    function getScoreInputSetCount() {
+      return usePickleballRules() ? 4 : 3;
+    }
+
+    function getSetWinnerDelta(saRaw, sbRaw, division = "") {
+      const sa = parseInt(saRaw, 10);
+      const sb = parseInt(sbRaw, 10);
+      if (isNaN(sa) || isNaN(sb)) return null;
+
+      if (usePickleballRules()) {
+        if (sa < 7 && sb < 7) return 0;
+        if (sa >= 11 || sb >= 11) {
+          if (sa > sb) return 1;
+          if (sb > sa) return -1;
+          return 0;
+        }
+        if (Math.abs(sa - sb) >= 2) {
+          if (sa > sb) return 1;
+          if (sb > sa) return -1;
+        }
+        return 0;
+      }
+
+      const diff = Math.abs(sa - sb);
+      const isLeague = /league/i.test(division);
+      const minPts = isLeague ? 12 : 8;
+      if ((sa >= minPts || sb >= minPts) && diff >= 2) {
+        if (sa > sb) return 1;
+        if (sb > sa) return -1;
+      }
+      return 0;
+    }
+
     function updateSiteSportLogo(tournamentName) {
       const logo = document.getElementById("siteSportLogo");
       if (!logo) return;
@@ -1546,7 +1591,7 @@
             { wins: 0, losses: 0, draws: 0, setsWon: 0, setsLost: 0, pointsWon: 0, pointsLost: 0 };
 
           if (a.length || b.length) {
-            let swA = 0, swB = 0;
+            let swA = 0, swB = 0, sd = 0;
             const len = Math.max(a.length, b.length);
             for (let i = 0; i < len; i++) {
               const sa = parseInt(a[i]);
@@ -1559,20 +1604,27 @@
                 tA.pointsLost += sb;
                 tB.pointsWon += sb;
               }
-              if (!isNaN(sa) && !isNaN(sb)) {
-                const diff = Math.abs(sa - sb);
-                const isLeague = /league/i.test(div);
-                const minPts = isLeague ? 12 : 8;
-                if ((sa >= minPts || sb >= minPts) && diff >= 2) {
-                  if (sa > sb) swA++; else if (sb > sa) swB++;
-                }
-              }
+              const winnerDelta = getSetWinnerDelta(sa, sb, div);
+              if (winnerDelta === 1) swA++;
+              else if (winnerDelta === -1) swB++;
+              else if (winnerDelta === 0) sd++;
             }
             tA.setsWon += swA; tA.setsLost += swB;
             tB.setsWon += swB; tB.setsLost += swA;
-            if (swA > swB) { tA.wins++; tB.losses++; }
-            else if (swB > swA) { tB.wins++; tA.losses++; }
-            else { tA.draws++; tB.draws++; }
+            if (usePickleballRules()) {
+              tA.wins += swA;
+              tA.losses += swB;
+              tA.draws += sd;
+              tB.wins += swB;
+              tB.losses += swA;
+              tB.draws += sd;
+            } else if (swA > swB) {
+              tA.wins++; tB.losses++;
+            } else if (swB > swA) {
+              tB.wins++; tA.losses++;
+            } else {
+              tA.draws++; tB.draws++;
+            }
           }
 
           divStats[div][team] = tA;
@@ -1591,24 +1643,29 @@
             ? team.pointsWon / (team.pointsWon + team.pointsLost)
             : 0;
         });
-        arr.sort((a, b) =>
-          b.wins - a.wins ||
-          b.draws - a.draws ||
-          b.setPct - a.setPct ||
-          b.pointsPct - a.pointsPct
-        );
+        if (usePickleballRules()) {
+          arr.forEach(team => {
+            team.pointDiff = team.pointsWon - team.pointsLost;
+          });
+          arr.sort((a, b) => b.wins - a.wins || b.pointDiff - a.pointDiff);
+        } else {
+          arr.sort((a, b) =>
+            b.wins - a.wins ||
+            b.draws - a.draws ||
+            b.setPct - a.setPct ||
+            b.pointsPct - a.pointsPct
+          );
+        }
         let rank = 1;
         arr.forEach((team, i) => {
           if (i === 0) {
             team.rank = 1;
           } else {
             const prev = arr[i - 1];
-            if (
-              team.wins === prev.wins &&
-              team.draws === prev.draws &&
-              team.setPct === prev.setPct &&
-              team.pointsPct === prev.pointsPct
-            ) {
+            const isSameRank = usePickleballRules()
+              ? team.wins === prev.wins && (team.pointDiff || 0) === (prev.pointDiff || 0)
+              : team.wins === prev.wins && team.draws === prev.draws && team.setPct === prev.setPct && team.pointsPct === prev.pointsPct;
+            if (isSameRank) {
               team.rank = prev.rank;
             } else {
               team.rank = i + 1;
@@ -1807,8 +1864,11 @@
       const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
       const sortedDivisions = divisions.slice().sort(collator.compare);
       const combineBtn = document.getElementById('combineViewBtn');
+      const divisionTabs = document.getElementById('divisionTabs');
+      const pickleballMode = usePickleballRules();
       const nonFinalDivs = sortedDivisions.filter(d => !/finals/i.test(d));
-      combineBtn.style.display = nonFinalDivs.length > 1 ? 'inline-block' : 'none';
+      combineBtn.style.display = pickleballMode ? 'none' : (nonFinalDivs.length > 1 ? 'inline-block' : 'none');
+      if (divisionTabs) divisionTabs.style.display = pickleballMode ? 'none' : '';
       sortedDivisions.forEach((div, idx) => {
         const btn = document.createElement('button');
         btn.textContent = div;
@@ -1819,7 +1879,9 @@
       });
       assignTeamColors();
       if (!currentDivision) currentDivision = sortedDivisions[0];
-      if (combinedDivisions) {
+      if (pickleballMode) {
+        showCombinedDivisions(nonFinalDivs.length ? nonFinalDivs : sortedDivisions);
+      } else if (combinedDivisions) {
         showCombinedDivisions(combinedDivisions);
       } else {
         showDivision(currentDivision);
@@ -1861,14 +1923,9 @@
         for (let i = 0; i < len; i++) {
           const sa = a[i];
           const sb = b[i];
-          if (sa !== undefined && sb !== undefined) {
-            const diff = Math.abs(sa - sb);
-            const isLeague = /league/i.test(match.division);
-            const minPts = isLeague ? 12 : 8;
-            if ((sa >= minPts || sb >= minPts) && diff >= 2) {
-              if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
-            }
-          }
+          const winnerDelta = getSetWinnerDelta(sa, sb, match.division);
+          if (winnerDelta === 1) swA++;
+          else if (winnerDelta === -1) swB++;
         }
         return { swA, swB };
       };
@@ -1953,11 +2010,12 @@
 
       const standingsForDivision = ((computeStandings(liveResults.schedule || {}, { excludeFinalsDates: true }) || {})[div] || {}).standings || [];
 
+      const pickleballMode = usePickleballRules();
       let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
-        '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
-        '<th>SW</th><th>SL</th><th>Set%</th>' +
-        '<th>PW</th><th>PL</th><th>Pts%</th>' +
+        (pickleballMode
+          ? '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th><th>PW</th><th>PL</th><th>PD</th>'
+          : '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th><th>SW</th><th>SL</th><th>Set%</th><th>PW</th><th>PL</th><th>Pts%</th>') +
         '</tr></thead><tbody>';
       standingsForDivision.forEach((row, i) => {
         const nameKey = normalizeName(row.team);
@@ -1966,11 +2024,13 @@
           (row.setsWon / (row.setsWon + row.setsLost) * 100).toFixed(1) : '0';
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
+        const pointDiff = row.pointsWon - row.pointsLost;
         const color = getTeamColor(displayName);
-        html += `<tr data-team="${nameKey}"><td>${row.rank}</td><td><span class="team-color team-entry" data-team="${nameKey}" style="color:${color}">${displayName}</span></td><td>${row.wins}</td>` +
-          `<td>${row.losses}</td><td>${row.draws}</td>` +
-          `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
-          `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
+        html += `<tr data-team="${nameKey}"><td>${row.rank}</td><td><span class="team-color team-entry" data-team="${nameKey}" style="color:${color}">${displayName}</span></td><td>${row.wins}</td><td>${row.losses}</td><td>${row.draws}</td>` +
+          (pickleballMode
+            ? `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${pointDiff}</td>`
+            : `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td><td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td>`) +
+          '</tr>';
       });
       html += '</tbody></table>';
       html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
@@ -2006,14 +2066,9 @@
           for (let i = 0; i < len; i++) {
             const sa = aScores[i];
             const sb = bScores[i];
-            if (sa !== undefined && sb !== undefined) {
-              const diff = Math.abs(sa - sb);
-              const isLeague = /league/i.test(match.division);
-              const minPts = isLeague ? 12 : 8;
-              if ((sa >= minPts || sb >= minPts) && diff >= 2) {
-                if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
-              }
-            }
+            const winnerDelta = getSetWinnerDelta(sa, sb, match.division);
+            if (winnerDelta === 1) swA++;
+            else if (winnerDelta === -1) swB++;
             // collect set rows later
           }
         const keyA = normalizeName(match.team);
@@ -2028,10 +2083,11 @@
         const teamALabel = `${match.team}${teamAIsWinner ? '<span class="finals-medal" aria-label="winner medal">🏅</span>' : ''}`;
         const teamBLabel = `${match.opponent}${teamBIsWinner ? '<span class="finals-medal" aria-label="winner medal">🏅</span>' : ''}`;
 
-        const setLabels = ['1st Set', '2nd Set', '3rd Set', '4th Set', '5th Set'];
+        const setLabels = getSetLabels();
         const header = [];
         const scores = [];
-        const maxSets = Math.max(aScores.length, bScores.length, 5);
+        const minDisplaySets = usePickleballRules() ? 4 : 5;
+        const maxSets = Math.max(aScores.length, bScores.length, minDisplaySets);
         for (let i = 0; i < maxSets; i++) {
           const sa = aScores[i];
           const sb = bScores[i];
@@ -2134,11 +2190,12 @@
       const container = document.getElementById('divisionContent');
       if (!data) { container.innerHTML = ''; return; }
 
+      const pickleballMode = usePickleballRules();
       let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
-        '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th>' +
-        '<th>SW</th><th>SL</th><th>Set%</th>' +
-        '<th>PW</th><th>PL</th><th>Pts%</th>' +
+        (pickleballMode
+          ? '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th><th>PW</th><th>PL</th><th>PD</th>'
+          : '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th><th>SW</th><th>SL</th><th>Set%</th><th>PW</th><th>PL</th><th>Pts%</th>') +
         '</tr></thead><tbody>';
       data.standings.forEach(row => {
         const nameKey = normalizeName(row.team);
@@ -2147,11 +2204,13 @@
           (row.setsWon / (row.setsWon + row.setsLost) * 100).toFixed(1) : '0';
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
+        const pointDiff = row.pointsWon - row.pointsLost;
         const color = getTeamColor(displayName);
-        html += `<tr data-team="${nameKey}"><td>${row.rank}</td><td><span class="team-color team-entry" data-team="${nameKey}" style="color:${color}">${displayName}</span></td>` +
-          `<td>${row.wins}</td><td>${row.losses}</td><td>${row.draws}</td>` +
-          `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td>` +
-          `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td></tr>`;
+        html += `<tr data-team="${nameKey}"><td>${row.rank}</td><td><span class="team-color team-entry" data-team="${nameKey}" style="color:${color}">${displayName}</span></td><td>${row.wins}</td><td>${row.losses}</td><td>${row.draws}</td>` +
+          (pickleballMode
+            ? `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${pointDiff}</td>`
+            : `<td>${row.setsWon}</td><td>${row.setsLost}</td><td>${setPct}%</td><td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${scorePct}%</td>`) +
+          '</tr>';
       });
       html += '</tbody></table>';
       html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
@@ -2182,14 +2241,9 @@
           for (let i = 0; i < len; i++) {
             const sa = aScores[i];
             const sb = bScores[i];
-            if (sa !== undefined && sb !== undefined) {
-              const diff = Math.abs(sa - sb);
-              const isLeague = /league/i.test(match.origDivision);
-              const minPts = isLeague ? 12 : 8;
-              if ((sa >= minPts || sb >= minPts) && diff >= 2) {
-                if (parseInt(sa) > parseInt(sb)) swA++; else if (parseInt(sb) > parseInt(sa)) swB++;
-              }
-            }
+            const winnerDelta = getSetWinnerDelta(sa, sb, match.origDivision);
+            if (winnerDelta === 1) swA++;
+            else if (winnerDelta === -1) swB++;
           }
           const keyA = normalizeName(match.team);
           const keyB = normalizeName(match.opponent);
@@ -2204,10 +2258,11 @@
           const teamBClasses = `team-color team-entry${teamBIsWinner ? ' finals-winner' : ''}${teamBIsLoser ? ' finals-loser' : ''}`;
           const teamALabel = `${match.team}${teamAIsWinner ? '<span class="finals-medal" aria-label="winner medal">🏅</span>' : ''}`;
           const teamBLabel = `${match.opponent}${teamBIsWinner ? '<span class="finals-medal" aria-label="winner medal">🏅</span>' : ''}`;
-          const setLabels = ['1st Set', '2nd Set', '3rd Set', '4th Set', '5th Set'];
+          const setLabels = getSetLabels();
           const header = [];
           const scores = [];
-          const maxSets = Math.max(aScores.length, bScores.length, 5);
+          const minDisplaySets = usePickleballRules() ? 4 : 5;
+          const maxSets = Math.max(aScores.length, bScores.length, minDisplaySets);
           for (let i = 0; i < maxSets; i++) {
             const sa = aScores[i];
             const sb = bScores[i];
@@ -2328,13 +2383,14 @@
           const card = document.createElement("div");
           card.className = "card";
           const teamHTML = `<span class="team-color" data-team="${normalizeName(match.team)}">${match.team}</span> vs <span class="team-color" data-team="${normalizeName(match.opponent)}">${match.opponent}</span>`;
+          const pickleballMode = usePickleballRules();
           card.innerHTML = `
             <div class="team">${teamHTML}</div>
-            <div class="division" style="color:${getDivisionColor(match.division)}">${match.division}</div>
+            ${pickleballMode ? '' : `<div class="division" style="color:${getDivisionColor(match.division)}">${match.division}</div>`}
             <div class="match-date">📅 Date: ${d}</div>
             <div class="time">⏰ Time: ${match.time}</div>
             <div class="location">🏟️ Court: ${match.location}</div>
-            <div class="duty">🛠️ Duty: ${match.dutyTeam}</div>
+            ${pickleballMode ? '' : `<div class="duty">🛠️ Duty: ${match.dutyTeam}</div>`}
           `;
 
           if (match.allowResult) {
@@ -2414,7 +2470,9 @@
       const popup = document.createElement("div");
       popup.className = "popup";
 
-      const setLabels = ["1st", "2nd", "3rd"];
+      const setLabels = usePickleballRules()
+        ? ["Singles A Match", "Singles B Match", "Doubles 1st Game", "Doubles 2nd Game"]
+        : ["1st Set", "2nd Set", "3rd Set"];
       const headerRow = `
         <div class="set-row">
           <span class="label-column"></span>
@@ -2423,14 +2481,16 @@
         </div>`;
       let inputFields = setLabels.map((label, i) => `
         <div class="set-row">
-          <span class="label-column">${label} Set</span>
+          <span class="label-column">${label}</span>
           <input type="tel" inputmode="numeric" pattern="[0-9]*" id="a${i+1}" />
           <input type="tel" inputmode="numeric" pattern="[0-9]*" id="b${i+1}" />
         </div>`).join("");
 
-      const commentHint = /cup/i.test(currentTournament)
-        ? "(If you have any feedback, please feel free to leave it in this section)"
-        : "(Choose your MVP of the game here.)";
+      const commentHint = usePickleballRules()
+        ? ""
+        : (/cup/i.test(currentTournament)
+          ? "(If you have any feedback, please feel free to leave it in this section)"
+          : "(Choose your MVP of the game here.)");
       popup.innerHTML = `
         <div class="popup-content">
           <h3>Enter Scores</h3>
@@ -2438,9 +2498,9 @@
           ${inputFields}
           <div>
             <label>Comment:</label>
-            <div>${commentHint}</div>
+            ${commentHint ? `<div>${commentHint}</div>` : ''}
             <textarea id="comment" maxlength="255"></textarea>
-            <small>Max 255 characters</small>
+            ${usePickleballRules() ? '' : '<small>Max 255 characters</small>'}
           </div>
           <div class="popup-buttons">
             <button id="scoreSubmit">Submit</button>
@@ -2488,7 +2548,8 @@
         date,
         index
       });
-      for (let i = 1; i <= 3; i++) {
+      const setCount = getScoreInputSetCount();
+      for (let i = 1; i <= setCount; i++) {
         params.append("a" + i, document.getElementById("a" + i).value);
         params.append("b" + i, document.getElementById("b" + i).value);
       }
