@@ -2284,11 +2284,16 @@
             scores.push(`<td class="set-score">${sa}-${sb}</td>`);
           }
 
+          const divisionLabel =
+            usePickleballRules() && match.origDivision === 'Main Division'
+              ? ''
+              : ` <span class="division">${match.origDivision}</span>`;
+
           html += `<div class="match-result">` +
             `<div class="match-header"><span class="${teamAClasses}" data-team="${keyA}" style="color:${colorA}">${teamALabel}</span>` +
             ` <span class="set-count">${swA}-${swB}</span> ` +
             `<span class="${teamBClasses}" data-team="${keyB}" style="color:${colorB}">${teamBLabel}</span>` +
-            ` <span class="division">${match.origDivision}</span></div>` +
+            `${divisionLabel}</div>` +
             `<table class="set-table"><tr>${header.join('')}</tr><tr>${scores.join('')}</tr></table>` +
             `</div>`;
         });
