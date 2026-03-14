@@ -796,6 +796,9 @@
       gap: 16px;
     }
     .tournament-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
       border-radius: 16px;
       padding: 16px 16px 14px;
       background: linear-gradient(150deg, rgba(255, 249, 237, 0.98), rgba(184, 243, 255, 0.35));
@@ -805,6 +808,23 @@
       cursor: pointer;
       transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
       color: var(--pine);
+    }
+    .tournament-card-logo-wrap {
+      flex: 0 0 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: stretch;
+    }
+    .tournament-card-logo {
+      width: 86px;
+      height: 86px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 10px rgba(18, 196, 160, 0.28));
+    }
+    .tournament-card-text {
+      min-width: 0;
+      flex: 1;
     }
     .tournament-card:hover {
       transform: translateY(-3px);
@@ -844,10 +864,13 @@
             <img src="content/img/sparrow.png" alt="Sparrows Volleyball holiday logo" class="tournament-logo" />
           </a>
           <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
+            <img src="content/img/pickleball.png" alt="Pickleball logo" class="tournament-logo" />
+          </a>
+          <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
             <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
           </a>
         </div>
-        <div class="tournament-logo-text">Sparrowsvolleyball Tournament Live Results</div>
+        <div class="tournament-logo-text">Sparrows Tournament Live Results</div>
       </div>
       <h1 class="tournament-title">Select a tournament</h1>
       <p class="tournament-subtitle">Choose which event you want to view / submit results for.</p>
@@ -1138,14 +1161,25 @@
       const cacheAge = cached && cached.timestamp ? Date.now() - cached.timestamp : Infinity;
       const isCacheStale = cacheAge > TOURNAMENT_LIST_CACHE_TTL;
 
+      function getTournamentCardLogo(name) {
+        return /pickleball/i.test(name)
+          ? "content/img/pickleball.png"
+          : "content/img/volleyball.png";
+      }
+
       function renderTournaments(normalized) {
         listEl.innerHTML = "";
         normalized.forEach(({ name, subtitle }) => {
           const card = document.createElement("div");
           card.className = "tournament-card";
           card.innerHTML = `
-            <div class="tournament-card-name"></div>
-            <p class="tournament-card-subtitle"></p>
+            <div class="tournament-card-logo-wrap">
+              <img class="tournament-card-logo" src="${getTournamentCardLogo(name)}" alt="Tournament sport logo" />
+            </div>
+            <div class="tournament-card-text">
+              <div class="tournament-card-name"></div>
+              <p class="tournament-card-subtitle"></p>
+            </div>
           `;
           card.querySelector(".tournament-card-name").textContent = name;
           const subtitleEl = card.querySelector(".tournament-card-subtitle");
