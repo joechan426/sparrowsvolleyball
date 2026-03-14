@@ -864,10 +864,10 @@
             <img src="content/img/sparrow.png" alt="Sparrows Volleyball holiday logo" class="tournament-logo" />
           </a>
           <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
-            <img src="content/img/pickleball.png" alt="Pickleball logo" class="tournament-logo" />
+            <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
           </a>
           <a class="tournament-logo-link" href="https://sparrowsvolleyball.com.au/">
-            <img src="content/img/logo.png" alt="Sparrows Volleyball logo" class="tournament-logo" />
+            <img src="content/img/pickleball.png" alt="Pickleball logo" class="tournament-logo" />
           </a>
         </div>
         <div class="tournament-logo-text">Sparrows Tournament Live Results</div>
@@ -887,7 +887,7 @@
         <img src="content/img/sparrow.png" alt="Sparrow" class="logo" />
       </a>
       <a href="https://sparrowsvolleyball.com.au/">
-        <img src="content/img/logo.png" alt="Logo" class="logo" />
+        <img id="siteSportLogo" src="content/img/logo.png" alt="Logo" class="logo" />
       </a>
     </div>
     <div class="header-text">
@@ -964,6 +964,18 @@
 
     function isLunarCupTournament(name) {
       return typeof name === "string" && /lunar cup/i.test(name.trim());
+    }
+
+    function isPickleballTournament(name) {
+      return typeof name === "string" && /pickleball/i.test(name);
+    }
+
+    function updateSiteSportLogo(tournamentName) {
+      const logo = document.getElementById("siteSportLogo");
+      if (!logo) return;
+      logo.src = isPickleballTournament(tournamentName)
+        ? "content/img/pickleball.png"
+        : "content/img/logo.png";
     }
 
     function setLunarCupTheme(isActive) {
@@ -1142,6 +1154,7 @@
       document.getElementById("appPage").style.display = "none";
       setLunarCupTheme(false);
       updateSpecialTournamentButtons(null);
+      updateSiteSportLogo(null);
     }
 
     function showAppPage() {
@@ -1258,6 +1271,7 @@
       updateTournamentInUrl(name);
       setLunarCupTheme(isLunarCupTournament(name));
       updateSpecialTournamentButtons(name);
+      updateSiteSportLogo(name);
 
       // Reset filters / in-memory state (safe even if already empty)
       scheduleData = {};
