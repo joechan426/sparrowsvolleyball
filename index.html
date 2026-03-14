@@ -905,7 +905,7 @@
       </button>
     </div>
     <div class="tab-primary">
-      <button id="drawLinkBtn" class="draw-link-btn" style="display:none;">Click here to view the Draw</button>
+      <button id="drawLinkBtn" class="draw-link-btn" style="display:none;">Click here for the most updated DRAW</button>
     </div>
     <div class="tab-secondary">
       <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
@@ -955,7 +955,7 @@
       '#f50057', '#651fff', '#00bfa5', '#ccbb00', '#459810',
       '#00b0ff', '#ff4081'
     ];
-    const apiUrl = "https://script.google.com/macros/s/AKfycbz-E2d0J8pHbD0HiQfJUHWhYinQFWG_Sv1ElYyE-yEbK83CMnDsB6AvCa1IPc-ZY-M/exec";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbyKbOap3iqBoy0DIBn78Qve4hUt81PvZ3iKHicC5a2VBBwbPXFHOSKPTyuzlDoXAUs/exec";
 
     let currentTournament = "";
     const tournamentMetaCache = {};
@@ -1074,15 +1074,16 @@
 
     function normalizeTournamentEntry(entry) {
       if (typeof entry === "string") {
-        return { name: entry, subtitle: "" };
+        return { name: entry, subtitle: "", drawLink: "" };
       }
       if (entry && typeof entry === "object") {
         return {
           name: entry.name || entry.tournament || "",
-          subtitle: entry.webSubtitleLine1 || entry.subtitle || entry.webSubtitle || ""
+          subtitle: entry.webSubtitleLine1 || entry.subtitle || entry.webSubtitle || "",
+          drawLink: typeof entry.drawLink === "string" ? entry.drawLink.trim() : ""
         };
       }
-      return { name: "", subtitle: "" };
+      return { name: "", subtitle: "", drawLink: "" };
     }
 
     const TOURNAMENT_LIST_CACHE_KEY = "sparrows:tournaments:list";
@@ -1106,11 +1107,15 @@
       })?.[1] || null;
     }
 
+    function getTournamentDrawLink(name) {
+      return tournamentMetaCache[name]?.drawLink || "";
+    }
+
     function updateSpecialTournamentButtons(tournamentName) {
       const config = getSpecialTournamentConfig(tournamentName);
       const drawBtn = document.getElementById("drawLinkBtn");
       const courtMapBtn = document.getElementById("courtMapBtn");
-      if (drawBtn) drawBtn.style.display = config?.drawUrl ? "inline-flex" : "none";
+      if (drawBtn) drawBtn.style.display = getTournamentDrawLink(tournamentName) ? "inline-flex" : "none";
       if (courtMapBtn) courtMapBtn.style.display = config?.showCourtMap ? "inline-flex" : "none";
     }
 
@@ -1145,7 +1150,8 @@
       const res = await fetch(`${apiUrl}?tournament=${encodeURIComponent(name)}`, { cache: "no-store" });
       const json = await res.json();
       const subtitle = (json.webSubtitleLine1 || "").trim();
-      tournamentMetaCache[name] = { subtitle };
+      const drawLink = typeof json.drawLink === "string" ? json.drawLink.trim() : "";
+      tournamentMetaCache[name] = { subtitle, drawLink };
       return tournamentMetaCache[name];
     }
 
@@ -1182,7 +1188,7 @@
 
       function renderTournaments(normalized) {
         listEl.innerHTML = "";
-        normalized.forEach(({ name, subtitle }) => {
+        normalized.forEach(({ name, subtitle, drawLink }) => {
           const card = document.createElement("div");
           card.className = "tournament-card";
           card.innerHTML = `
@@ -1198,13 +1204,14 @@
           const subtitleEl = card.querySelector(".tournament-card-subtitle");
           if (subtitle) {
             subtitleEl.textContent = subtitle;
-            tournamentMetaCache[name] = { subtitle };
+            tournamentMetaCache[name] = { subtitle, drawLink };
           } else {
             subtitleEl.textContent = " ";
             fetchTournamentMeta(name).then(meta => {
               if (subtitleEl && meta && meta.subtitle) {
                 subtitleEl.textContent = meta.subtitle;
               }
+              updateSpecialTournamentButtons(currentTournament);
             }).catch(() => {});
           }
 
@@ -1272,6 +1279,9 @@
       setLunarCupTheme(isLunarCupTournament(name));
       updateSpecialTournamentButtons(name);
       updateSiteSportLogo(name);
+      fetchTournamentMeta(name)
+        .then(() => updateSpecialTournamentButtons(name))
+        .catch(() => {});
 
       // Reset filters / in-memory state (safe even if already empty)
       scheduleData = {};
@@ -1366,9 +1376,9 @@
       const courtMapBtn = document.getElementById("courtMapBtn");
       if (drawBtn) {
         drawBtn.addEventListener("click", () => {
-          const config = getSpecialTournamentConfig(currentTournament);
-          if (!config?.drawUrl) return;
-          window.open(config.drawUrl, "_blank", "noopener,noreferrer");
+          const drawLink = getTournamentDrawLink(currentTournament);
+          if (!drawLink) return;
+          window.open(drawLink, "_blank", "noopener,noreferrer");
         });
       }
       if (courtMapBtn) {
