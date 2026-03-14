@@ -977,7 +977,7 @@
 
     function getSetLabels() {
       if (usePickleballRules()) {
-        return ["Singles A Match", "Singles B Match", "Doubles 1st Game", "Doubles 2nd Game"];
+        return ["Singles A", "Singles B", "Doubles G1", "Doubles G2"];
       }
       return ["1st Set", "2nd Set", "3rd Set", "4th Set", "5th Set"];
     }
@@ -2489,7 +2489,7 @@
       popup.className = "popup";
 
       const setLabels = usePickleballRules()
-        ? ["Singles A Match", "Singles B Match", "Doubles 1st Game", "Doubles 2nd Game"]
+        ? ["Singles A", "Singles B", "Doubles G1", "Doubles G2"]
         : ["1st Set", "2nd Set", "3rd Set"];
       const headerRow = `
         <div class="set-row">
