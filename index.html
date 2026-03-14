@@ -1574,6 +1574,11 @@
       return /finals/i.test(String(dateLabel || ''));
     }
 
+    function normalizeDivisionName(division) {
+      const sanitized = String(division || '').trim();
+      return sanitized || 'Main Division';
+    }
+
     function computeStandings(schedule, { excludeFinalsDates = false } = {}) {
       const divStats = {};
       for (const date in schedule || {}) {
@@ -1582,7 +1587,7 @@
           const { division, team, opponent, scores = {} } = match || {};
           const a = scores.a || [];
           const b = scores.b || [];
-          const div = division || 'Unknown';
+          const div = normalizeDivisionName(division);
           divStats[div] = divStats[div] || {};
 
           const tA = divStats[div][team] ||
@@ -1684,6 +1689,8 @@
           if (!match) return;
           const dateKey = match.date || match.matchDate || 'Unknown Date';
           const entry = { ...match };
+          entry.division = normalizeDivisionName(entry.division);
+          entry.dutyTeam = entry.dutyTeam || '';
           if (includeRowIndex) entry.rowIndex = idx;
           (output[dateKey] ||= []).push(entry);
         });
@@ -1697,6 +1704,8 @@
             .map((m, i) => {
               if (!m) return null;
               const entry = { ...m };
+              entry.division = normalizeDivisionName(entry.division);
+              entry.dutyTeam = entry.dutyTeam || '';
               if (includeRowIndex && entry.rowIndex === undefined) entry.rowIndex = i;
               return entry;
             })
@@ -1852,9 +1861,7 @@
         liveResults = { schedule: liveResults };
       }
       liveResults.schedule = normalizeSchedule(liveResults.schedule);
-      if (!liveResults.divisions) {
-        liveResults.divisions = computeStandings(liveResults.schedule);
-      }
+      liveResults.divisions = computeStandings(liveResults.schedule);
       const regRow = document.getElementById('divisionRowRegular');
       const finRow = document.getElementById('divisionRowFinals');
       if (regRow) regRow.innerHTML = '';
@@ -2036,7 +2043,7 @@
       html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
       const schedule = liveResults.schedule || {};
       const hasFinalsDate = Object.keys(schedule).some(date => {
-        const matches = (schedule[date] || []).filter(m => m.division === div);
+        const matches = (schedule[date] || []).filter(m => normalizeDivisionName(m.division) === div);
         return matches.length && isFinalsDateLabel(date);
       });
       if (!hasFinalsDate) {
@@ -2053,7 +2060,7 @@
       html += '<div class="match-days">';
       for (const date in schedule) {
         if (hideNonFinalsMatches && !isFinalsDateLabel(date)) continue;
-        const matches = (schedule[date] || []).filter(m => m.division === div);
+        const matches = (schedule[date] || []).filter(m => normalizeDivisionName(m.division) === div);
         if (!matches.length) continue;
         const isFinalsDate = isFinalsDateLabel(date);
         const dayClasses = `card match-day${isFinalsDate ? ' finals-day' : ''}`;
@@ -2180,9 +2187,15 @@
       highlightTeam(null);
       const schedule = {};
       for (const date in liveResults.schedule || {}) {
-        const matches = (liveResults.schedule[date] || []).filter(m => divList.includes(m.division));
+        const matches = (liveResults.schedule[date] || []).filter(m => {
+          const divisionName = normalizeDivisionName(m && m.division);
+          return divList.includes(divisionName);
+        });
         if (matches.length) {
-          schedule[date] = matches.map(m => ({ ...m, origDivision: m.division, division: 'Combined' }));
+          schedule[date] = matches.map(m => {
+            const divisionName = normalizeDivisionName(m && m.division);
+            return { ...m, origDivision: divisionName, division: 'Combined' };
+          });
         }
       }
       const standingsObj = computeStandings(schedule, { excludeFinalsDates: true });
