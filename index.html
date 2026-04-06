@@ -282,6 +282,11 @@
       background: rgba(255, 209, 102, 0.35);
       box-shadow: 0 0 8px rgba(255, 209, 102, 0.55);
     }
+    .match-result.highlight {
+      background: rgba(255, 209, 102, 0.2);
+      border-radius: 8px;
+      padding: 3px 5px;
+    }
     .division {
       display: inline-block;
       background: linear-gradient(120deg, rgba(18, 196, 160, 0.28), rgba(255, 111, 97, 0.28));
@@ -514,6 +519,17 @@
     .auto-renew-note {
       font-size: 14px;
       margin-bottom: 5px;
+      color: #0f7a67;
+    }
+    .ranking-switch-wrap {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .ranking-switch-label {
+      font-size: 13px;
       color: #0f7a67;
     }
     .finals-toggle-wrap {
@@ -1337,6 +1353,7 @@
       liveResults = {};
       currentDivision = null;
       combinedDivisions = null;
+      pickleballRankingView = 'team';
       hideNonFinalsMatches = false;
       finalsVisibilityPreference = null;
       liveResultsLoadingPromise = null;
@@ -1579,6 +1596,115 @@
       return sanitized || 'Main Division';
     }
 
+    function splitPlayers(value) {
+      return String(value || '')
+        .split(', ')
+        .map(name => name.trim())
+        .filter(Boolean);
+    }
+
+    function getPlayerEntryKey(playerName, teamName) {
+      return `${normalizeName(playerName)}::${normalizeName(teamName)}`;
+    }
+
+    function getMatchHighlightKeys(match) {
+      const keys = new Set();
+      const teamAKey = normalizeName(match.team);
+      const teamBKey = normalizeName(match.opponent);
+      if (teamAKey) keys.add(teamAKey);
+      if (teamBKey) keys.add(teamBKey);
+      splitPlayers(match.team1_players).forEach(player => {
+        keys.add(getPlayerEntryKey(player, match.team));
+      });
+      splitPlayers(match.team2_players).forEach(player => {
+        keys.add(getPlayerEntryKey(player, match.opponent));
+      });
+      return [...keys];
+    }
+
+    function hasPlayerRankingData(schedule) {
+      for (const date in schedule || {}) {
+        for (const match of (schedule[date] || [])) {
+          if (String(match.team1_players || '').trim() || String(match.team2_players || '').trim()) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function computePlayerStandings(schedule) {
+      const statsMap = {};
+      for (const date in schedule || {}) {
+        if (isFinalsDateLabel(date)) continue;
+        (schedule[date] || []).forEach(match => {
+          const aScores = (match.scores && match.scores.a) || [];
+          const bScores = (match.scores && match.scores.b) || [];
+          if (!aScores.length && !bScores.length) return;
+
+          let swA = 0, swB = 0, sd = 0;
+          let pointsA = 0, pointsB = 0;
+          const len = Math.max(aScores.length, bScores.length);
+          for (let i = 0; i < len; i++) {
+            const sa = parseInt(aScores[i], 10);
+            const sb = parseInt(bScores[i], 10);
+            if (!Number.isNaN(sa)) pointsA += sa;
+            if (!Number.isNaN(sb)) pointsB += sb;
+            const winnerDelta = getSetWinnerDelta(sa, sb, match.origDivision || match.division);
+            if (winnerDelta === 1) swA++;
+            else if (winnerDelta === -1) swB++;
+            else if (winnerDelta === 0) sd++;
+          }
+
+          const teamAPlayers = [...new Set(splitPlayers(match.team1_players))];
+          const teamBPlayers = [...new Set(splitPlayers(match.team2_players))];
+          const attachStats = (playerName, teamName, wins, losses, draws, pointsWon, pointsLost) => {
+            const key = getPlayerEntryKey(playerName, teamName);
+            if (!statsMap[key]) {
+              statsMap[key] = {
+                key,
+                playerName,
+                teamName,
+                wins: 0,
+                losses: 0,
+                draws: 0,
+                pointsWon: 0,
+                pointsLost: 0
+              };
+            }
+            statsMap[key].wins += wins;
+            statsMap[key].losses += losses;
+            statsMap[key].draws += draws;
+            statsMap[key].pointsWon += pointsWon;
+            statsMap[key].pointsLost += pointsLost;
+          };
+
+          teamAPlayers.forEach(player => attachStats(player, match.team, swA, swB, sd, pointsA, pointsB));
+          teamBPlayers.forEach(player => attachStats(player, match.opponent, swB, swA, sd, pointsB, pointsA));
+        });
+      }
+
+      const rows = Object.values(statsMap).map(row => ({
+        ...row,
+        pointDiff: row.pointsWon - row.pointsLost
+      }));
+      rows.sort((a, b) =>
+        b.wins - a.wins ||
+        b.pointDiff - a.pointDiff ||
+        a.playerName.localeCompare(b.playerName, undefined, { sensitivity: 'base' }) ||
+        a.teamName.localeCompare(b.teamName, undefined, { sensitivity: 'base' })
+      );
+      rows.forEach((row, i) => {
+        if (i === 0) {
+          row.rank = 1;
+          return;
+        }
+        const prev = rows[i - 1];
+        row.rank = (row.wins === prev.wins && row.pointDiff === prev.pointDiff) ? prev.rank : i + 1;
+      });
+      return rows;
+    }
+
     function computeStandings(schedule, { excludeFinalsDates = false } = {}) {
       const divStats = {};
       for (const date in schedule || {}) {
@@ -1684,11 +1810,18 @@
 
     function normalizeSchedule(rawSchedule, { includeRowIndex = false } = {}) {
       const output = {};
+      const pickleballMode = usePickleballRules();
       if (Array.isArray(rawSchedule)) {
         rawSchedule.forEach((match, idx) => {
           if (!match) return;
           const dateKey = match.date || match.matchDate || 'Unknown Date';
           const entry = { ...match };
+          if (pickleballMode) {
+            entry.team1_players = String(entry.division || '').trim();
+            entry.team2_players = String(entry.dutyTeam || '').trim();
+            entry.division = 'Main Division';
+            entry.dutyTeam = '';
+          }
           entry.division = normalizeDivisionName(entry.division);
           entry.dutyTeam = entry.dutyTeam || '';
           if (includeRowIndex) entry.rowIndex = idx;
@@ -1704,6 +1837,12 @@
             .map((m, i) => {
               if (!m) return null;
               const entry = { ...m };
+              if (pickleballMode) {
+                entry.team1_players = String(entry.division || '').trim();
+                entry.team2_players = String(entry.dutyTeam || '').trim();
+                entry.division = 'Main Division';
+                entry.dutyTeam = '';
+              }
               entry.division = normalizeDivisionName(entry.division);
               entry.dutyTeam = entry.dutyTeam || '';
               if (includeRowIndex && entry.rowIndex === undefined) entry.rowIndex = i;
@@ -1793,6 +1932,7 @@
     let liveResults = {};
     let currentDivision = null;
     let combinedDivisions = null;
+    let pickleballRankingView = 'team';
     let hideNonFinalsMatches = false;
     let finalsVisibilityPreference = null;
     let liveResultsLoadingPromise = null;
@@ -2138,10 +2278,17 @@
       highlightedTeamKey = teamKey;
       document.querySelectorAll('.team-color.highlight').forEach(e => e.classList.remove('highlight'));
       document.querySelectorAll('.ranking-table tr.highlight').forEach(e => e.classList.remove('highlight'));
+      document.querySelectorAll('.match-result.highlight').forEach(e => e.classList.remove('highlight'));
       if (!teamKey) return;
       document.querySelectorAll(`.team-color[data-team="${teamKey}"]`).forEach(e => e.classList.add('highlight'));
       const row = document.querySelector(`.ranking-table tr[data-team="${teamKey}"]`);
       if (row) row.classList.add('highlight');
+      document.querySelectorAll('.match-result[data-highlight-keys]').forEach(matchEl => {
+        const keys = String(matchEl.dataset.highlightKeys || '').split('|').filter(Boolean);
+        if (keys.includes(teamKey)) {
+          matchEl.classList.add('highlight');
+        }
+      });
     }
 
     function openCombineDivisionsPopup() {
@@ -2204,21 +2351,42 @@
       if (!data) { container.innerHTML = ''; return; }
 
       const pickleballMode = usePickleballRules();
-      let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
+      const canShowPlayerRanking = pickleballMode && hasPlayerRankingData(schedule);
+      const playerStandings = canShowPlayerRanking ? computePlayerStandings(schedule) : [];
+      if (!canShowPlayerRanking) {
+        pickleballRankingView = 'team';
+      }
+      const showPlayerRanking = pickleballMode && canShowPlayerRanking && pickleballRankingView === 'player';
+      const rankingRows = showPlayerRanking ? playerStandings : data.standings;
+
+      let html = '';
+      if (canShowPlayerRanking) {
+        const checkedAttr = showPlayerRanking ? 'checked' : '';
+        html += `<div class="ranking-switch-wrap">
+          <label>
+            <input type="checkbox" id="pickleballRankingSwitch" ${checkedAttr}>
+            Show participant ranking
+          </label>
+          <span class="ranking-switch-label">Toggle between team ranking and participant ranking.</span>
+        </div>`;
+      }
+      html += '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
         '<table class="ranking-table"><thead><tr>' +
         (pickleballMode
-          ? '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th><th>PW</th><th>PL</th><th>PD</th>'
+          ? `<th>#</th><th>${showPlayerRanking ? 'Participant' : 'Team'}</th><th>W</th><th>L</th><th>D</th><th>PW</th><th>PL</th><th>PD</th>`
           : '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th><th>SW</th><th>SL</th><th>Set%</th><th>PW</th><th>PL</th><th>Pts%</th>') +
         '</tr></thead><tbody>';
-      data.standings.forEach(row => {
-        const nameKey = normalizeName(row.team);
-        const displayName = teamNameMap[nameKey] || row.team;
+      rankingRows.forEach(row => {
+        const nameKey = showPlayerRanking ? row.key : normalizeName(row.team);
+        const displayName = showPlayerRanking
+          ? `${row.playerName} (${row.teamName})`
+          : (teamNameMap[nameKey] || row.team);
         const setPct = row.setsWon + row.setsLost > 0 ?
           (row.setsWon / (row.setsWon + row.setsLost) * 100).toFixed(1) : '0';
         const scorePct = row.pointsWon + row.pointsLost > 0 ?
           (row.pointsWon / (row.pointsWon + row.pointsLost) * 100).toFixed(1) : '0';
         const pointDiff = row.pointsWon - row.pointsLost;
-        const color = getTeamColor(displayName);
+        const color = getTeamColor(showPlayerRanking ? row.teamName : displayName);
         html += `<tr data-team="${nameKey}"><td>${row.rank}</td><td><span class="team-color team-entry" data-team="${nameKey}" style="color:${color}">${displayName}</span></td><td>${row.wins}</td><td>${row.losses}</td><td>${row.draws}</td>` +
           (pickleballMode
             ? `<td>${row.pointsWon}</td><td>${row.pointsLost}</td><td>${pointDiff}</td>`
@@ -2226,7 +2394,7 @@
           '</tr>';
       });
       html += '</tbody></table>';
-      html += '<div class="auto-renew-note">Click your team name for highlights viewing</div>';
+      html += `<div class="auto-renew-note">Click your ${showPlayerRanking ? 'participant' : 'team'} name for highlights viewing</div>`;
       const hasFinalsDate = Object.keys(schedule).some(date => isFinalsDateLabel(date));
       if (!hasFinalsDate) {
         hideNonFinalsMatches = false;
@@ -2289,7 +2457,8 @@
               ? ''
               : ` <span class="division">${match.origDivision}</span>`;
 
-          html += `<div class="match-result">` +
+          const matchKeys = getMatchHighlightKeys(match).join('|');
+          html += `<div class="match-result" data-highlight-keys="${matchKeys}">` +
             `<div class="match-header"><span class="${teamAClasses}" data-team="${keyA}" style="color:${colorA}">${teamALabel}</span>` +
             ` <span class="set-count">${swA}-${swB}</span> ` +
             `<span class="${teamBClasses}" data-team="${keyB}" style="color:${colorB}">${teamBLabel}</span>` +
@@ -2312,6 +2481,13 @@
         finalsToggleBtn.addEventListener('click', () => {
           hideNonFinalsMatches = !hideNonFinalsMatches;
           finalsVisibilityPreference = hideNonFinalsMatches;
+          showCombinedDivisions(divList);
+        });
+      }
+      const rankingSwitch = document.getElementById('pickleballRankingSwitch');
+      if (rankingSwitch) {
+        rankingSwitch.addEventListener('change', () => {
+          pickleballRankingView = rankingSwitch.checked ? 'player' : 'team';
           showCombinedDivisions(divList);
         });
       }
