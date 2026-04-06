@@ -749,21 +749,6 @@
       background: rgba(18, 196, 160, 0.6);
     }
 
-    .bracket-gallery {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .bracket-gallery img {
-      width: 100%;
-      max-width: 1200px;
-      height: auto;
-      border-radius: 16px;
-      box-shadow: 0 12px 24px rgba(12, 83, 40, 0.2), 0 8px 20px rgba(255, 159, 112, 0.18);
-    }
-
     @media (max-width: 600px) {
       .site-header {
         flex-direction: column;
@@ -967,7 +952,6 @@
     <div class="tab-secondary">
       <button id='scheduleTab' class='active' onclick="showTab('schedule')">Schedule</button>
       <button id='liveTab' onclick="handleLiveTabClick()">Live results</button>
-      <button id='bracketsTab' onclick="showTab('brackets')">Tournament Brackets</button>
     </div>
   </div>
   <div id="scheduleSection">
@@ -992,13 +976,6 @@
     <button id="combineViewBtn">Combine Divisions Table View</button>
     <div id="divisionContent"></div>
   </div>
-  <div id="bracketsSection" style="display:none;">
-    <div class="bracket-gallery">
-      <img src="content/img/Tournament_Brackets_1.png" alt="Tournament bracket 1">
-      <img src="content/img/Tournament_Brackets_2.png" alt="Tournament bracket 2">
-      <img src="content/img/Tournament_Brackets_3.png" alt="Tournament bracket 3">
-    </div>
-  </div>
 
   <script>
     let scheduleData = {};
@@ -1006,7 +983,6 @@
     let teamColorMap = {};
     let divisionColorMap = {};
     let highlightedTeamKey = null;
-    const bracketsEnabled = false;
     const colorPalette = [
       '#ff1744', '#008142', '#2979ff', '#ff9100', '#d500f9',
       '#f50057', '#651fff', '#00bfa5', '#ccbb00', '#459810',
@@ -1016,8 +992,8 @@
 
     let currentTournament = "";
     const tournamentMetaCache = {};
-    const SCHEDULE_CACHE_TTL_MS = 30 * 1000;
-    const LIVE_RESULTS_CACHE_TTL_MS = 15 * 1000;
+    const SCHEDULE_CACHE_TTL_MS = 5 * 60 * 1000;
+    const LIVE_RESULTS_CACHE_TTL_MS = 10 * 1000;
 
     function isLunarCupTournament(name) {
       return typeof name === "string" && /lunar cup/i.test(name.trim());
@@ -1487,27 +1463,11 @@
         courtMapBtn.addEventListener("click", openCourtMapPopup);
       }
     }
-    if (!bracketsEnabled) {
-      const bracketsTab = document.getElementById("bracketsTab");
-      const bracketsSection = document.getElementById("bracketsSection");
-      if (bracketsTab) {
-        bracketsTab.style.display = "none";
-        bracketsTab.setAttribute("aria-hidden", "true");
-        bracketsTab.setAttribute("tabindex", "-1");
-      }
-      if (bracketsSection) {
-        bracketsSection.setAttribute("hidden", "true");
-      }
-    }
-
     function showTab(tab) {
-      if (tab === "brackets" && !bracketsEnabled) tab = "schedule";
       document.getElementById("scheduleSection").style.display = tab === "schedule" ? "block" : "none";
       document.getElementById("liveResultsSection").style.display = tab === "live" ? "block" : "none";
-      document.getElementById("bracketsSection").style.display = tab === "brackets" ? "block" : "none";
       document.getElementById("scheduleTab").classList.toggle("active", tab === "schedule");
       document.getElementById("liveTab").classList.toggle("active", tab === "live");
-      document.getElementById("bracketsTab").classList.toggle("active", tab === "brackets");
       if (tab === "live") {
         ensureLiveResultsLoaded();
         startLiveResultsAutoRefresh();
@@ -1977,7 +1937,11 @@
     let finalsVisibilityPreference = null;
     let liveResultsLoadingPromise = null;
     let liveResultsRefreshTimer = null;
-    const LIVE_RESULTS_REFRESH_MS = 15 * 1000;
+    const LIVE_RESULTS_REFRESH_ACTIVE_MS = 10 * 1000;
+
+    function isLiveResultsTabActive() {
+      return document.getElementById("liveResultsSection").style.display === "block";
+    }
 
     function showLiveResultsLoading(message = "Loading live results...") {
       const container = document.getElementById('divisionContent');
@@ -2024,14 +1988,29 @@
 
     function startLiveResultsAutoRefresh() {
       stopLiveResultsAutoRefresh();
-      if (!currentTournament) return;
+      if (!currentTournament || document.hidden) return;
       liveResultsRefreshTimer = setInterval(() => {
-        if (document.getElementById("liveResultsSection").style.display !== "block") return;
+        if (document.hidden) return;
+        if (!isLiveResultsTabActive()) return;
         if (liveResultsLoadingPromise) return;
         fetchResults(currentTournament, { allowCache: false, forceRefresh: true }).catch(err => {
           console.error("Failed to auto refresh live results", err);
         });
-      }, LIVE_RESULTS_REFRESH_MS);
+      }, LIVE_RESULTS_REFRESH_ACTIVE_MS);
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        stopLiveResultsAutoRefresh();
+        return;
+      }
+      if (!isLiveResultsTabActive() || !currentTournament) return;
+      if (!liveResultsLoadingPromise) {
+        fetchResults(currentTournament, { allowCache: false, forceRefresh: true }).catch(err => {
+          console.error("Failed to refresh live results after page became visible", err);
+        });
+      }
+      startLiveResultsAutoRefresh();
     }
 
     function applyLiveResultsPayload(payload, tournamentName) {
@@ -2182,7 +2161,7 @@
       if (!data) { container.innerHTML = ''; return; }
 
       if (/finals/i.test(div)) {
-        let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
+        let html = '<div class="auto-renew-note">Table auto refresh every 10 sec (foreground only)</div>' +
           buildFinalsBracket(div);
         container.innerHTML = html;
         document.querySelectorAll('#divisionTabs button').forEach(btn => btn.classList.remove('active'));
@@ -2198,7 +2177,7 @@
       const standingsForDivision = ((computeStandings(liveResults.schedule || {}, { excludeFinalsDates: true }) || {})[div] || {}).standings || [];
 
       const pickleballMode = usePickleballRules();
-      let html = '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
+      let html = '<div class="auto-renew-note">Table auto refresh every 10 sec (foreground only)</div>' +
         '<table class="ranking-table"><thead><tr>' +
         (pickleballMode
           ? '<th>#</th><th>Team</th><th>W</th><th>L</th><th>D</th><th>PW</th><th>PL</th><th>PD</th>'
@@ -2410,7 +2389,7 @@
           <span class="ranking-switch-label">Show player ranking</span>
         </div>`;
       }
-      html += '<div class="auto-renew-note">Table auto refresh every 15 sec</div>' +
+      html += '<div class="auto-renew-note">Table auto refresh every 10 sec (foreground only)</div>' +
         '<table class="ranking-table"><thead><tr>' +
         (pickleballMode
           ? `<th>#</th><th>${showPlayerRanking ? 'Participant' : 'Team'}</th><th>W</th><th>L</th><th>D</th><th>PW</th><th>PL</th><th>PD</th>`
@@ -3075,6 +3054,7 @@
     window.addEventListener("DOMContentLoaded", async () => {
       bindBackButton();
       bindSpecialTournamentButtons();
+      document.addEventListener("visibilitychange", handleVisibilityChange);
       const urlParams = new URLSearchParams(window.location.search);
       const initialTournament = urlParams.get("tournament");
 
