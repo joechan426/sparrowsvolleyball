@@ -1015,7 +1015,9 @@
     }
 
     function getScoreInputSetCount() {
-      return usePickleballRules() ? 4 : 3;
+      if (usePickleballRules()) return 4;
+      const configuredSetCount = Number(tournamentMetaCache[currentTournament]?.numberOfSets);
+      return configuredSetCount === 5 ? 5 : 3;
     }
 
     function getSetWinnerDelta(saRaw, sbRaw, division = "") {
@@ -1151,16 +1153,17 @@
 
     function normalizeTournamentEntry(entry) {
       if (typeof entry === "string") {
-        return { name: entry, subtitle: "", drawLink: "" };
+        return { name: entry, subtitle: "", drawLink: "", numberOfSets: "" };
       }
       if (entry && typeof entry === "object") {
         return {
           name: entry.name || entry.tournament || "",
           subtitle: entry.webSubtitleLine1 || entry.subtitle || entry.webSubtitle || "",
-          drawLink: typeof entry.drawLink === "string" ? entry.drawLink.trim() : ""
+          drawLink: typeof entry.drawLink === "string" ? entry.drawLink.trim() : "",
+          numberOfSets: entry.numberOfSets ?? ""
         };
       }
-      return { name: "", subtitle: "", drawLink: "" };
+      return { name: "", subtitle: "", drawLink: "", numberOfSets: "" };
     }
 
     const TOURNAMENT_LIST_CACHE_KEY = "sparrows:tournaments:list";
@@ -1228,7 +1231,8 @@
       const json = await res.json();
       const subtitle = (json.webSubtitleLine1 || "").trim();
       const drawLink = typeof json.drawLink === "string" ? json.drawLink.trim() : "";
-      tournamentMetaCache[name] = { subtitle, drawLink };
+      const numberOfSets = json.numberOfSets ?? "";
+      tournamentMetaCache[name] = { subtitle, drawLink, numberOfSets };
       return tournamentMetaCache[name];
     }
 
@@ -1265,7 +1269,7 @@
 
       function renderTournaments(normalized) {
         listEl.innerHTML = "";
-        normalized.forEach(({ name, subtitle, drawLink }) => {
+        normalized.forEach(({ name, subtitle, drawLink, numberOfSets }) => {
           const card = document.createElement("div");
           card.className = "tournament-card";
           card.innerHTML = `
@@ -1281,7 +1285,7 @@
           const subtitleEl = card.querySelector(".tournament-card-subtitle");
           if (subtitle) {
             subtitleEl.textContent = subtitle;
-            tournamentMetaCache[name] = { subtitle, drawLink };
+            tournamentMetaCache[name] = { subtitle, drawLink, numberOfSets };
           } else {
             subtitleEl.textContent = " ";
             fetchTournamentMeta(name).then(meta => {
@@ -2685,7 +2689,7 @@
 
       const setLabels = usePickleballRules()
         ? ["Singles A", "Singles B", "Doubles G1", "Doubles G2"]
-        : ["1st Set", "2nd Set", "3rd Set"];
+        : getSetLabels().slice(0, getScoreInputSetCount());
       const headerRow = `
         <div class="set-row">
           <span class="label-column"></span>
