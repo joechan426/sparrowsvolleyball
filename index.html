@@ -1040,7 +1040,7 @@
       }
 
       const diff = Math.abs(sa - sb);
-      const isLeague = /league/i.test(division);
+      const isLeague = /league/i.test(division) || Number(tournamentMetaCache[currentTournament]?.numberOfSets) === 5;
       const minPts = isLeague ? 13 : 8;
       if ((sa >= minPts || sb >= minPts) && diff >= 2) {
         if (sa > sb) return 1;
