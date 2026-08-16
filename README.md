@@ -23,8 +23,36 @@ The CMS commits the new file under `content/matches/` so the schedule can be upd
 
 ## Live Results
 
-Live standings and score submissions are also driven by the same Google Sheets
-document used for the schedule. The site calls a Google Apps Script (`apiUrl` in
-`index.html`) to fetch the latest results and to record score updates. This
-means no manual updates to `content/results.json` are required.
+> **Retired.** Tournament scoring has moved to
+> <https://sparrowsweb.netlify.app/tournaments>. The site root (`index.html`)
+> now redirects visitors straight there.
+
+The legacy Google Sheets based scoring system has **not** been deleted — its
+full, unmodified source lives in `legacy-scoring.html` in the repository root
+(kept at the root so all `content/...` asset paths keep working). It stays
+reachable at:
+
+- <https://joechan426.github.io/sparrowsvolleyball/legacy-scoring.html>
+- <https://sparrowsliveresults.netlify.app/legacy-scoring.html>
+
+### Restoring the legacy system
+
+Swap the two files back and push:
+
+```bash
+git mv index.html redirect.html
+git mv legacy-scoring.html index.html
+git commit -m "Restore legacy tournament scoring system"
+git push
+```
+
+(Or just rename `legacy-scoring.html` back to `index.html` in the GitHub web
+editor.) The same instructions are repeated in a comment at the top of
+`index.html`.
+
+Live standings and score submissions in the legacy page are driven by the same
+Google Sheets document used for the schedule. That page calls a Google Apps
+Script (`apiUrl` in `legacy-scoring.html`) to fetch the latest results and to
+record score updates, so no manual updates to `content/results.json` are
+required.
 
