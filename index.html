@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <!--
   ============================================================================
-  NOTICE PAGE — the old Google-Sheets based tournament scoring system has been
-  retired in favour of https://sparrowsweb.netlify.app/tournaments
+  REDIRECT PAGE — the old Google-Sheets based tournament scoring system has
+  been retired in favour of https://sparrowsweb.netlify.app/tournaments
+
+  Visitors to the site root are sent straight to the new system. The visible
+  text below is only a fallback for the rare case where both the script and
+  the meta refresh are blocked.
+
+  NOTE: all user-visible text in this repository must be English only.
 
   The old system has NOT been deleted. Its full source now lives in
   `legacy-scoring.html` (unchanged, same folder, so all `content/...` asset
   paths still resolve).
 
   TO RESTORE THE OLD SYSTEM INSTANTLY:
-      git mv index.html notice.html
+      git mv index.html redirect.html
       git mv legacy-scoring.html index.html
       git commit -m "Restore legacy tournament scoring system"
       git push
@@ -26,30 +32,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sparrows Tournament — We've Moved</title>
+  <title>Sparrows Tournament — Redirecting</title>
+  <link rel="canonical" href="https://sparrowsweb.netlify.app/tournaments" />
+  <meta name="robots" content="noindex" />
+  <!-- Redirect as early as possible: script first, meta refresh as fallback. -->
+  <script>
+    window.location.replace('https://sparrowsweb.netlify.app/tournaments');
+  </script>
+  <meta http-equiv="refresh" content="0; url=https://sparrowsweb.netlify.app/tournaments" />
   <link rel="icon" href="content/img/logo.png" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
     :root {
-      --sky: #b8f3ff;
       --sea: #31d1cb;
-      --sand: #ffe7a8;
       --pine: #0b5b53;
-      --cherry: #ff6b6b;
-      --gold: #ffd166;
       --shell: #fff9ed;
-      --sunset: #ff9f70;
       --lagoon: #12c4a0;
     }
-    * { box-sizing: border-box; }
     body {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
-      background:
-        radial-gradient(circle at 18% 16%, rgba(255, 227, 150, 0.42) 0, rgba(255, 227, 150, 0) 38%),
-        radial-gradient(circle at 82% 12%, rgba(255, 166, 158, 0.38) 0, rgba(255, 166, 158, 0) 36%),
-        radial-gradient(circle at 50% 96%, rgba(49, 209, 203, 0.22) 0, rgba(49, 209, 203, 0) 46%),
-        linear-gradient(180deg, rgba(184, 243, 255, 0.95) 0%, rgba(104, 228, 210, 0.85) 45%, rgba(255, 231, 168, 0.94) 100%),
-        repeating-linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0, rgba(255, 255, 255, 0.1) 8px, rgba(0, 0, 0, 0) 8px, rgba(0, 0, 0, 0) 16px);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #b8f3ff 0%, #68e4d2 45%, #ffe7a8 100%);
       background-attachment: fixed;
       margin: 0;
       padding: 24px;
@@ -58,121 +59,41 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
     }
     .card {
       background: var(--shell);
-      border-radius: 26px;
-      border: 3px solid rgba(255, 255, 255, 0.8);
+      border-radius: 24px;
       box-shadow: 0 18px 44px rgba(11, 91, 83, 0.22);
-      max-width: 560px;
+      max-width: 460px;
       width: 100%;
-      padding: 34px 28px 30px;
-      text-align: center;
+      padding: 34px 26px 30px;
     }
-    .logo {
-      width: 84px;
-      height: 84px;
-      object-fit: contain;
-      margin-bottom: 10px;
-    }
-    .brand {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--sea);
-      margin-bottom: 18px;
-    }
-    h1 {
-      font-size: 27px;
-      line-height: 1.25;
-      margin: 0 0 6px;
-      color: var(--cherry);
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      text-shadow: 0 3px 16px rgba(255, 159, 112, 0.55);
-    }
-    h2 {
-      font-size: 19px;
-      margin: 0 0 20px;
-      color: var(--pine);
-      font-weight: 600;
-    }
-    .divider {
-      height: 3px;
-      width: 72px;
-      margin: 0 auto 20px;
-      border-radius: 3px;
-      background: linear-gradient(90deg, var(--gold), var(--sunset), var(--sea));
-    }
-    p {
-      font-size: 16px;
-      line-height: 1.65;
-      margin: 0 0 12px;
-    }
-    p.zh { font-size: 17px; }
-    p.en { color: rgba(11, 91, 83, 0.78); }
-    .cta {
+    .logo { width: 76px; height: 76px; object-fit: contain; margin-bottom: 12px; }
+    h1 { font-size: 22px; margin: 0 0 10px; }
+    p { font-size: 16px; line-height: 1.6; margin: 0 0 8px; }
+    a.cta {
       display: inline-block;
-      margin: 20px 0 8px;
-      padding: 16px 30px;
+      margin-top: 18px;
+      padding: 15px 28px;
       border-radius: 999px;
       background: linear-gradient(135deg, var(--lagoon), var(--sea));
       color: #ffffff;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
-      letter-spacing: 0.5px;
       text-decoration: none;
       box-shadow: 0 10px 24px rgba(18, 196, 160, 0.42);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
-    .cta:hover, .cta:focus {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(18, 196, 160, 0.52);
-    }
-    .url {
-      display: block;
-      margin-top: 4px;
-      font-size: 14px;
-      word-break: break-all;
-      color: rgba(11, 91, 83, 0.6);
-    }
-    .note {
-      margin-top: 22px;
-      padding-top: 18px;
-      border-top: 1px dashed rgba(11, 91, 83, 0.22);
-      font-size: 14px;
-      line-height: 1.6;
-      color: rgba(11, 91, 83, 0.7);
-    }
-    @media (max-width: 480px) {
-      body { padding: 16px; }
-      .card { padding: 28px 20px 24px; border-radius: 20px; }
-      h1 { font-size: 22px; }
-      h2 { font-size: 17px; }
-      .cta { width: 100%; padding: 15px 18px; font-size: 17px; }
-    }
+    .url { display: block; margin-top: 10px; font-size: 13px; word-break: break-all; color: rgba(11, 91, 83, 0.6); }
   </style>
 </head>
 <body>
   <main class="card">
     <img class="logo" src="content/img/logo.png" alt="Sparrows Volleyball logo" />
-    <div class="brand">Sparrows Volleyball</div>
-
-    <h1>計分系統已搬遷</h1>
-    <h2>Scoring Has Moved</h2>
-    <div class="divider"></div>
-
-    <p class="zh">此頁的舊計分系統已停止使用。<br />請到新系統輸入及查看比賽分數。</p>
-    <p class="en">This old scoring page is no longer in use. Please enter and view match scores on the new system.</p>
-
-    <a class="cta" href="https://sparrowsweb.netlify.app/tournaments">前往新系統 · Go to New System</a>
+    <h1>Taking you to the new scoring system…</h1>
+    <p>Tournament scores are now entered on the new Sparrows site.</p>
+    <a class="cta" href="https://sparrowsweb.netlify.app/tournaments">Continue</a>
     <span class="url">https://sparrowsweb.netlify.app/tournaments</span>
-
-    <p class="note">
-      如有任何問題，請聯絡 Sparrows 職員。<br />
-      If you have any questions, please contact a Sparrows staff member.
-    </p>
   </main>
 </body>
 </html>

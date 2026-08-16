@@ -25,7 +25,7 @@ The CMS commits the new file under `content/matches/` so the schedule can be upd
 
 > **Retired.** Tournament scoring has moved to
 > <https://sparrowsweb.netlify.app/tournaments>. The site root (`index.html`)
-> now shows a notice pointing users there.
+> now redirects visitors straight there.
 
 The legacy Google Sheets based scoring system has **not** been deleted — its
 full, unmodified source lives in `legacy-scoring.html` in the repository root
@@ -40,7 +40,7 @@ reachable at:
 Swap the two files back and push:
 
 ```bash
-git mv index.html notice.html
+git mv index.html redirect.html
 git mv legacy-scoring.html index.html
 git commit -m "Restore legacy tournament scoring system"
 git push
